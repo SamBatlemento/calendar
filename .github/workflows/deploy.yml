@@ -68,4 +68,8 @@ jobs:
             npm list -g pm2 || npm install -g pm2
             pm2 reload express-server --update-env || pm2 start server.js --name "express-server"
             pm2 save
+<<<<<<< HEAD
             nginx -s reload
+=======
+            nginx -s reload
+>>>>>>> 0176b220ff5279d3d6f4f27ef4896ae17d844859
