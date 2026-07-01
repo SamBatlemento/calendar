@@ -1,5 +1,8 @@
 import React, {useState} from 'react';
 import {buildPath} from './Path';
+import {storeToken} from '../tokenStorage';
+import {jwtDecode} from 'jwt-decode';
+
 
 function Login()
 {
@@ -15,23 +18,42 @@ function Login()
     {
         event.preventDefault();
 
-        var obj = {login:loginName,password:loginPassword};
-        var js = JSON.stringify(obj);
+        let obj = {login:loginName,password:loginPassword};
+        let js = JSON.stringify(obj);
 
         try
         {
             const response = await fetch(buildPath('api/login'), {method:'POST',body:js,headers:{'Content-Type': 'application/json'}});
-            var res = JSON.parse(await response.text());
-            if( res.id <= 0 )
+            let res = JSON.parse(await response.text());
+
+            const{accessToken} = res;
+            storeToken(res);
+
+            const decoded = jwtDecode<{userId:number, firstName:string, lastName:string}> (accessToken);
+            
+            try
             {
-                setMessage('User/Password combination incorrect');
+                let userId = decoded.userId;
+                let firstName = decoded.firstName;
+                let lastName = decoded.lastName;
+                
+                if( userId <= 0 )
+                {
+                    setMessage('User/Password combination incorrect');
+                }
+                else
+                {
+                    let user = {firstName:firstName,lastName:lastName,id:userId} 
+                    localStorage.setItem('user_data', JSON.stringify(user));
+                    
+                    setMessage('');
+                    window.location.href = '/cards';
+                }
             }
-            else
+            catch(e)
             {
-                var user = {firstName:res.firstName,lastName:res.lastName,id:res.id} 
-                localStorage.setItem('user_data', JSON.stringify(user));
-                setMessage('');
-                window.location.href = '/cards';
+                console.log(e);
+                return;
             }
         }
         catch(error:any)
