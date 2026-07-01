@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-
+import {buildPath} from './Path';
 
 function Login()
 {
@@ -8,18 +8,8 @@ function Login()
     const [loginName, setLoginName] = React.useState('');
     const [loginPassword, setPassword] = React.useState('');
 
-    const app_name = 'cop4331-9.com';
-    function buildPath(route:string) : string
-    {
-        if(process.env.NODE_ENV != 'development')
-        {
-            return 'http://' + app_name + ':5000/' + route;
-        }
-        else
-        {
-            return 'http://localhost:5000/' + route;
-        }
-    }
+
+
 
     async function doLogin(event: any) : Promise<void>
     {

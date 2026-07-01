@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import {buildPath} from './Path';
 
 function CardUI()
 {
@@ -17,19 +18,6 @@ function CardUI()
     const [search,setSearchValue] = React.useState('');
     const [card,setCardNameValue] = React.useState('');
 
-
-    const app_name = 'cop4331-9.com';
-    function buildPath(route:string) : string
-    {
-        if(process.env.NODE_ENV != 'development')
-        {
-            return 'http://' + app_name + ':5000/' + route;
-        }
-        else
-        {
-            return 'http://localhost:5000/' + route;
-        }
-    }
 
 
     async function addCard(e:any) : Promise<void>
