@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
 import {buildPath} from './Path';
+import {retrieveToken, storeToken} from '../tokenStorage';
 
 function CardUI()
 {
@@ -24,7 +25,7 @@ function CardUI()
     {
         e.preventDefault();
         
-        let obj = {userId:userId, card: card};
+        let obj = {userId:userId, card: card, jwtToken:retrieveToken()};
         let js = JSON.stringify(obj);
 
         try
@@ -53,12 +54,14 @@ function CardUI()
     async function searchCard(e:any) : Promise<void>
     {
         e.preventDefault();
-        let obj = {userId:userId,search:search};
+        let obj = {userId:userId,search:search, jwtToken:retrieveToken()};
         let js = JSON.stringify(obj);
+
         try
         {
             const response = await
             fetch(buildPath('api/searchCards'), {method:'POST',body:js,headers:{'Content-Type': 'application/json'}});
+            
             let txt = await response.text();
             let res = JSON.parse(txt);
             let _results = res.results;
@@ -72,6 +75,7 @@ function CardUI()
                 }
             }
             setResults('Card(s) have been retrieved');
+            storeToken(res.jwtToken);
             setCardList(resultText);
         }
         catch(error:any)
