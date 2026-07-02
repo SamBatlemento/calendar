@@ -1,6 +1,6 @@
 require('express');
 const token = require('./createJWT.js');
-const  bcrypt = require('bcrypt');
+const  bcrypt = require('bcryptjs');
 const User = require('./models/User');
 const Coach = require('./models/Coach');
 const Athlete = require('./models/Athlete');
