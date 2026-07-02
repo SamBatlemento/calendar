@@ -33,8 +33,6 @@ function Login()
             storeToken(res);
 
             const decoded = jwtDecode<{userId:number, firstName:string, lastName:string, role:string}> (accessToken);
-            console.log('decoded token: ', decoded);
-
             const { userId, firstName, lastName, role } = decoded;
 
             let user = {firstName, lastName, id:userId, role};
