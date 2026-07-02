@@ -6,12 +6,11 @@ exports.createToken = function(fn, ln, id)
     return _createToken(fn, ln, id);
 }
 
-_createToken = function(fn, ln, id)
+_createToken = function(fn, ln, id, role)
 {
     try
     {
-        const expiration = new Date();
-        const user = {userId:id, firstName:fn, lastName:ln};
+        const user = {userId:id, firstName:fn, lastName:ln, role:role};
 
         const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '20m'});
         
