@@ -16,7 +16,7 @@ function Login()
     {
         event.preventDefault();
 
-        let obj = {login:loginName,password:loginPassword};
+        let obj = {email:loginName,password:loginPassword};
 
         try
         {

@@ -17,7 +17,7 @@ async function seed()
 
     const coach = await Coach.create({
         email: 'Coach.smith@example.com',
-        password: 'Manny123',
+        password: passwordHash,
         firstName: 'Alex',
         lastName: 'Smith',
         bio: 'Strength & conditioning coach, 10 years experience.',
