@@ -1,9 +1,9 @@
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
-exports.createToken = function(fn, ln, id)
+exports.createToken = function(fn, ln, id, role)
 {
-    return _createToken(fn, ln, id);
+    return _createToken(fn, ln, id, role);
 }
 
 _createToken = function(fn, ln, id, role)
@@ -47,6 +47,7 @@ exports.refresh = function(token)
     var userId = ud.payload.id;
     var firstName = ud.payload.firstName;
     var lastName = ud.payload.lastName;
+    var role = ud.payload.role;
 
-    return _createToken(firstName, lastName, userId);
+    return _createToken(firstName, lastName, userId, role);
 }
