@@ -9,4 +9,4 @@ const AthleteSchema = new Schema({
     goals: { type: String, trim: true },
 });
 
-module.exports = User.discriminator('athlete', AthleteSchema);
+module.exports = User.discriminator('Athlete', AthleteSchema);
