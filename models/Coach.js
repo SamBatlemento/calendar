@@ -8,4 +8,4 @@ const CoachSchema = new Schema({
 });
 
 
-module.exports = User.discriminator('coach', CoachSchema);
+module.exports = User.discriminator('Coach', CoachSchema);
