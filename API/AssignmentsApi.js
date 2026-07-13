@@ -1,16 +1,10 @@
 
 require('express');
-const token = require('../createJWT.js');
-const bcrypt = require('bcryptjs');
-const User = require('../models/User.js');
-const Coach = require('../models/Coach.js');
 const Athlete = require('../models/Athlete.js');
-const Team = require('../models/Team.js');
 const Exercise = require('../models/Exercise.js');
 const Assignment = require('../models/Assignment.js');
-const ExerciseLog = require('../models/ExerciseLog.js');
-const MealLog = require('../models/MealLog.js');
-const {verifyJWT, requireRole} = require("../middleware/auth.js");
+
+const { verifyJWT, requireRole } = require("../middleware/auth.js");
 
 const crypto = require("crypto");
 
@@ -147,6 +141,62 @@ app.get('/api/my-assignments', verifyJWT, requireRole("Athlete"), async (req, re
     {
         res.status(500).json({
             error: err.message
+        });
+    }
+});
+
+// =========================
+// Get Assignment by ID
+// =========================
+app.get('/api/assignments/:id',
+    verifyJWT,
+    async (req, res) =>
+{
+    try
+    {
+        const assignment = await Assignment.findById(req.params.id)
+            .populate("exercise")
+            .populate("member");
+
+        if (!assignment)
+        {
+            return res.status(404).json({
+                error: "Assignment not found."
+            });
+        }
+
+        return res.status(200).json(assignment);
+    }
+    catch (e)
+    {
+        return res.status(500).json({
+            error: e.message
+        });
+    }
+});
+
+// =========================
+// Get Assignments for a Specific Athlete (Coach)
+// =========================
+app.get('/api/assignments/member/:memberId',
+    verifyJWT,
+    requireRole("Coach"),
+    async (req, res) =>
+{
+    try
+    {
+        const assignments = await Assignment.find({
+            member: req.params.memberId
+        })
+        .populate("exercise")
+        .populate("member");
+
+        return res.status(200).json(assignments);
+    }
+    catch (e)
+    {
+        return res.status(500).json({
+            error: e.message
         });
     }
 });
