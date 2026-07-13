@@ -1,0 +1,168 @@
+
+require('express');
+const Athlete = require('../models/Athlete.js');
+const Team = require('../models/Team.js');
+const {verifyJWT, requireRole} = require("../middleware/auth.js");
+
+const crypto = require("crypto");
+
+exports.setApp = function(app, mongoose)
+{
+
+app.post('/api/team/add-member', verifyJWT, requireRole("Coach"), async (req, res) =>
+{
+    const coachId = req.user.userId;
+    const { email } = req.body;
+
+    try
+    {
+        if (!coachId || !email)
+        {
+            return res.status(400).json({
+                error: "Coach ID and email are required."
+            });
+        }
+
+        const athlete = await Athlete.findOne({
+            email: email.toLowerCase()
+        });
+
+        if (!athlete)
+        {
+            return res.status(404).json({
+                error: "Athlete not found."
+            });
+        }
+
+        let team = await Team.findOne({
+            coach: coachId
+        });
+
+        // Create the team if it doesn't exist yet
+        if (!team)
+        {
+            team = await Team.create({
+                coach: coachId,
+                members: []
+            });
+        }
+
+        // Prevent duplicate members
+        if (team.members.some(member => member.equals(athlete._id)))
+        {
+            return res.status(400).json({
+                error: "Athlete is already on the team."
+            });
+        }
+
+        team.members.push(athlete._id);
+
+        await team.save();
+
+        res.status(200).json({
+            message: "Athlete added successfully."
+        });
+    }
+    catch(err)
+    {
+        res.status(500).json({
+            error: err.message
+        });
+    }
+});
+
+// =========================
+// Get My Team (Coach)
+// =========================
+app.get('/api/team',
+    verifyJWT,
+    requireRole("Coach"),
+    async (req, res) =>
+{
+    try
+    {
+        const team = await Team.findOne({
+            coach: req.user.userId
+        })
+        .populate("coach")
+        .populate("members");
+
+        if (!team)
+        {
+            return res.status(404).json({
+                error: "Team not found."
+            });
+        }
+
+        return res.status(200).json(team);
+    }
+    catch (e)
+    {
+        return res.status(500).json({
+            error: e.message
+        });
+    }
+});
+
+// =========================
+// Get Team Members
+// =========================
+app.get('/api/team/members',
+    verifyJWT,
+    requireRole("Coach"),
+    async (req, res) =>
+{
+    try
+    {
+        const team = await Team.findOne({
+            coach: req.user.userId
+        })
+        .populate("members");
+
+        if (!team)
+        {
+            return res.status(404).json({
+                error: "Team not found."
+            });
+        }
+
+        return res.status(200).json(team.members);
+    }
+    catch (e)
+    {
+        return res.status(500).json({
+            error: e.message
+        });
+    }
+});
+
+// =========================
+// Get Team by ID
+// =========================
+app.get('/api/team/:id',
+    verifyJWT,
+    async (req, res) =>
+{
+    try
+    {
+        const team = await Team.findById(req.params.id)
+            .populate("coach")
+            .populate("members");
+
+        if (!team)
+        {
+            return res.status(404).json({
+                error: "Team not found."
+            });
+        }
+
+        return res.status(200).json(team);
+    }
+    catch (e)
+    {
+        return res.status(500).json({
+            error: e.message
+        });
+    }
+});
+}
