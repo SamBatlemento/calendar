@@ -1,15 +1,7 @@
 
 require('express');
-const token = require('../createJWT.js');
-const bcrypt = require('bcryptjs');
-const User = require('../models/User.js');
-const Coach = require('../models/Coach.js');
 const Athlete = require('../models/Athlete.js');
 const Team = require('../models/Team.js');
-const Exercise = require('../models/Exercise.js');
-const Assignment = require('../models/Assignment.js');
-const ExerciseLog = require('../models/ExerciseLog.js');
-const MealLog = require('../models/MealLog.js');
 const {verifyJWT, requireRole} = require("../middleware/auth.js");
 
 const crypto = require("crypto");
@@ -75,6 +67,101 @@ app.post('/api/team/add-member', verifyJWT, requireRole("Coach"), async (req, re
     {
         res.status(500).json({
             error: err.message
+        });
+    }
+});
+
+// =========================
+// Get My Team (Coach)
+// =========================
+app.get('/api/team',
+    verifyJWT,
+    requireRole("Coach"),
+    async (req, res) =>
+{
+    try
+    {
+        const team = await Team.findOne({
+            coach: req.user.userId
+        })
+        .populate("coach")
+        .populate("members");
+
+        if (!team)
+        {
+            return res.status(404).json({
+                error: "Team not found."
+            });
+        }
+
+        return res.status(200).json(team);
+    }
+    catch (e)
+    {
+        return res.status(500).json({
+            error: e.message
+        });
+    }
+});
+
+// =========================
+// Get Team Members
+// =========================
+app.get('/api/team/members',
+    verifyJWT,
+    requireRole("Coach"),
+    async (req, res) =>
+{
+    try
+    {
+        const team = await Team.findOne({
+            coach: req.user.userId
+        })
+        .populate("members");
+
+        if (!team)
+        {
+            return res.status(404).json({
+                error: "Team not found."
+            });
+        }
+
+        return res.status(200).json(team.members);
+    }
+    catch (e)
+    {
+        return res.status(500).json({
+            error: e.message
+        });
+    }
+});
+
+// =========================
+// Get Team by ID
+// =========================
+app.get('/api/team/:id',
+    verifyJWT,
+    async (req, res) =>
+{
+    try
+    {
+        const team = await Team.findById(req.params.id)
+            .populate("coach")
+            .populate("members");
+
+        if (!team)
+        {
+            return res.status(404).json({
+                error: "Team not found."
+            });
+        }
+
+        return res.status(200).json(team);
+    }
+    catch (e)
+    {
+        return res.status(500).json({
+            error: e.message
         });
     }
 });
