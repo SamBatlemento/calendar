@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 
 export default function SignupPage() {
   const { signup } = useAuth();
-  const [form, setForm] = useState({ name: '', email: '', password: '', role: 'member' });
+  const [form, setForm] = useState({ firstname: '', lastname: '', email: '', password: '', role: 'Athlete' });
   const [status, setStatus] = useState(null);
   const [error, setError] = useState(null);
 
@@ -45,12 +45,12 @@ export default function SignupPage() {
           <Form.Label>I am a...</Form.Label>
           <div>
             <Form.Check
-              inline label="Coach" type="radio" name="role" value="coach"
-              checked={form.role === 'coach'} onChange={handleChange}
+              inline label="Coach" type="radio" name="role" value="Coach"
+              checked={form.role === 'Coach'} onChange={handleChange}
             />
             <Form.Check
-              inline label="Team Member" type="radio" name="role" value="member"
-              checked={form.role === 'member'} onChange={handleChange}
+              inline label="Team Athlete" type="radio" name="role" value="Athlete"
+              checked={form.role === 'Athlete'} onChange={handleChange}
             />
           </div>
         </Form.Group>

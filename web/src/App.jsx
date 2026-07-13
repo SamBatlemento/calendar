@@ -4,13 +4,15 @@ import ProtectedRoute from './components/ProtectedRoute';
 import SignupPage from './pages/SignupPage';
 import LoginPage from './pages/LoginPage';
 import CoachDashboard from './pages/CoachDashboard';
-import MemberDashboard from './pages/MemberDashboard';
+import AthleteDashboard from './pages/AthleteDashboard';
+import { Navigate } from 'react-router-dom';
 
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+          <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route
@@ -18,9 +20,10 @@ export default function App() {
             element={<ProtectedRoute role="coach"><CoachDashboard /></ProtectedRoute>}
           />
           <Route
-            path="/member"
-            element={<ProtectedRoute role="member"><MemberDashboard /></ProtectedRoute>}
+            path="/athlete"
+            element={<ProtectedRoute role="athlete"><AthleteDashboard /></ProtectedRoute>}
           />
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

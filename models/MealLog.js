@@ -3,6 +3,12 @@ const Schema = mongoose.Schema;
 
 const MealLogSchema = new Schema(
 {
+    member: {
+        type: Schema.Types.ObjectId,
+        ref: 'Athlete', 
+        required: true 
+    },
+
     meal:
     {
         type: String,
