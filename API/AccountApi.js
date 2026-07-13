@@ -1,172 +1,161 @@
-require('express');
 const token = require('../createJWT.js');
 const bcrypt = require('bcryptjs');
-const User = require('../models/User.js');
-const Coach = require('../models/Coach.js');
-const Athlete = require('../models/Athlete.js');
-const Team = require('../models/Team.js');
-const Exercise = require('../models/Exercise.js');
-const Assignment = require('../models/Assignment.js');
-const ExerciseLog = require('../models/ExerciseLog.js');
-const MealLog = require('../models/MealLog.js');
-const {verifyJWT, requireRole} = require("../middleware/auth.js");
+const crypto = require('crypto');
 
-const crypto = require("crypto");
+const User = require('../models/User.js');
+
+const { verifyJWT, requireRole } = require("../middleware/auth.js");
 
 exports.setApp = function(app, mongoose)
-{  
- 
-  app.post('/api/login', async(req, res) =>
-  {
-    const { email, password } = req.body;
-    let ret;
-   
-    try
-    {
-        const user = await User.findOne({ email: email.toLowerCase() }).select('+password');
-
-        if (!user || !(await bcrypt.compare(password, user.password)))
-        {
-            return res.status(401).json({
-            error: "Invalid email/password"
-            });
-        }
-
-        if (!user.verified)
-        {
-            return res.status(403).json({
-            error: "Please verify your email before logging in."
-            });
-        }
-
-        ret = token.createToken(
-            user.firstName,
-            user.lastName,
-            user._id,
-            user.role
-        );
-
-        ret.role = user.role;
-    }
-    catch (e)
-    {
-        return res.status(500).json({
-        error: e.message
-        });
-    }
-
-    return res.status(200).json(ret);
-});
- 
-
-  //More api calls
-
-  app.post('/api/signup', async (req, res) =>
 {
-    const { firstName, lastName, email, password, role } = req.body;
-    let ret;
-
-    try
+    // =========================
+    // Login
+    // =========================
+    app.post('/api/login', async (req, res) =>
     {
-        // Make sure all required fields are provided
-        if (!firstName || !lastName || !email || !password || !role)
+        const { email, password } = req.body;
+
+        try
         {
-            return res.status(400).json({
-                error: "All fields are required."
+            const user = await User.findOne({
+                email: email.toLowerCase()
+            }).select('+password');
+
+            if (!user || !(await bcrypt.compare(password, user.password)))
+            {
+                return res.status(401).json({
+                    error: "Invalid email/password"
+                });
+            }
+
+            if (!user.verified)
+            {
+                return res.status(403).json({
+                    error: "Please verify your email before logging in."
+                });
+            }
+
+            let ret = token.createToken(
+                user.firstName,
+                user.lastName,
+                user._id,
+                user.role
+            );
+
+            ret.role = user.role;
+
+            return res.status(200).json(ret);
+        }
+        catch (e)
+        {
+            return res.status(500).json({
+                error: e.message
             });
         }
+    });
 
-        // Check if the email is already registered
-        const existingUser = await User.findOne({
-            email: email.toLowerCase()
-        });
+    // =========================
+    // Signup
+    // =========================
+    app.post('/api/signup', async (req, res) =>
+    {
+        const { firstName, lastName, email, password, role } = req.body;
 
-        if (existingUser)
+        try
         {
-            return res.status(400).json({
-                error: "Email already exists."
+            if (!firstName || !lastName || !email || !password || !role)
+            {
+                return res.status(400).json({
+                    error: "All fields are required."
+                });
+            }
+
+            const existingUser = await User.findOne({
+                email: email.toLowerCase()
+            });
+
+            if (existingUser)
+            {
+                return res.status(400).json({
+                    error: "Email already exists."
+                });
+            }
+
+            const hashedPassword = await bcrypt.hash(password, 10);
+
+            const verificationToken = crypto.randomBytes(32).toString("hex");
+
+            const user = await User.create({
+                firstName,
+                lastName,
+                email: email.toLowerCase(),
+                password: hashedPassword,
+                role,
+                verified: false,
+                verificationToken
+            });
+
+            return res.status(201).json({
+                message: "Account created successfully.",
+                userId: user._id
             });
         }
-
-        // Hash the password
-        const hashedPassword = await bcrypt.hash(password, 10);
-
-        const verificationToken = crypto.randomBytes(32).toString("hex");
-
-        // Create the new user
-        const user = await User.create({
-            firstName,
-            lastName,
-            email: email.toLowerCase(),
-            password: hashedPassword,
-            role,
-            verified: false,
-            verificationToken
-        });
-
-        ret = {
-            message: "Account created successfully.",
-            userId: user._id
-        };
-    }
-    catch (e)
-    {
-        return res.status(500).json({
-            error: e.message
-        });
-    }
-
-    return res.status(201).json(ret);
-});
-
-//const crypto = require("crypto");
-
-app.post('/api/verify-email', async (req, res) =>
-{
-    const { token } = req.body;
-    let ret;
-
-    try
-    {
-        if (!token)
+        catch (e)
         {
-            return res.status(400).json({
-                error: "Verification token is required."
+            return res.status(500).json({
+                error: e.message
             });
         }
+    });
 
-        const user = await User.findOne({
-            verificationToken: token
-        });
+    // =========================
+    // Verify Email
+    // =========================
+    app.post('/api/verify-email', async (req, res) =>
+    {
+        const { token } = req.body;
 
-        if (!user)
+        try
         {
-            return res.status(400).json({
-                error: "Invalid or expired verification token."
+            if (!token)
+            {
+                return res.status(400).json({
+                    error: "Verification token is required."
+                });
+            }
+
+            const user = await User.findOne({
+                verificationToken: token
+            });
+
+            if (!user)
+            {
+                return res.status(400).json({
+                    error: "Invalid or expired verification token."
+                });
+            }
+
+            user.verified = true;
+            user.verificationToken = null;
+
+            await user.save();
+
+            return res.status(200).json({
+                message: "Email verified successfully."
             });
         }
-
-        user.verified = true;
-        user.verificationToken = "";
-
-        await user.save();
-
-        ret =
+        catch (e)
         {
-            message: "Email verified successfully."
-        };
-    }
-    catch (e)
-    {
-        return res.status(500).json({
-        error: e.message
-        });
-    }
+            return res.status(500).json({
+                error: e.message
+            });
+        }
+    });
 
-    return res.status(200).json(ret);
-});
-
- app.get('/api/account/profile', verifyJWT, async (req, res) =>
+    // =========================
+    // Get Logged-in User Profile
+    // =========================
+    app.get('/api/account/profile', verifyJWT, async (req, res) =>
     {
         try
         {
@@ -218,12 +207,9 @@ app.post('/api/verify-email', async (req, res) =>
     });
 
     // =========================
-    // Get All Users
+    // Get All Users (Coach Only)
     // =========================
-    app.get('/api/accounts',
-        verifyJWT,
-        requireRole("coach"),
-        async (req, res) =>
+    app.get('/api/accounts', verifyJWT, requireRole("coach"), async (req, res) =>
     {
         try
         {
@@ -243,9 +229,7 @@ app.post('/api/verify-email', async (req, res) =>
     // =========================
     // Get Users by Role
     // =========================
-    app.get('/api/accounts/role/:role',
-        verifyJWT,
-        async (req, res) =>
+    app.get('/api/accounts/role/:role', verifyJWT, async (req, res) =>
     {
         try
         {
@@ -254,7 +238,6 @@ app.post('/api/verify-email', async (req, res) =>
             }).select('-password -verificationToken');
 
             return res.status(200).json(users);
-
         }
         catch (e)
         {
@@ -267,9 +250,7 @@ app.post('/api/verify-email', async (req, res) =>
     // =========================
     // Validate JWT
     // =========================
-    app.get('/api/account/validate',
-        verifyJWT,
-        async (req, res) =>
+    app.get('/api/account/validate', verifyJWT, async (req, res) =>
     {
         return res.status(200).json({
             loggedIn: true,
