@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 
 export default function SignupPage() {
   const { signup } = useAuth();
-  const [form, setForm] = useState({ firstname: '', lastname: '', email: '', password: '', role: 'Athlete' });
+  const [form, setForm] = useState({ firstName: '', lastName: '', email: '', password: '', role: 'Athlete' });
   const [status, setStatus] = useState(null);
   const [error, setError] = useState(null);
 
@@ -30,8 +30,12 @@ export default function SignupPage() {
       {error && <Alert variant="danger">{error}</Alert>}
       <Form onSubmit={handleSubmit}>
         <Form.Group className="mb-3">
-          <Form.Label>Name</Form.Label>
-          <Form.Control name="name" value={form.name} onChange={handleChange} required />
+          <Form.Label>First Name</Form.Label>
+          <Form.Control name="firstName" value={form.firstName} onChange={handleChange} required />
+        </Form.Group>
+        <Form.Group className="mb-3">
+          <Form.Label>Last Name</Form.Label>
+          <Form.Control name="lastName" value={form.lastName} onChange={handleChange} required />
         </Form.Group>
         <Form.Group className="mb-3">
           <Form.Label>Email</Form.Label>

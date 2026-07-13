@@ -1,0 +1,8 @@
+require('./User.js');
+require('./Coach.js');
+require('./Athlete.js');
+require('./Team.js');
+require('./Exercise.js');
+require('./Assignment.js');
+require('./ExerciseLog.js');
+require('./MealLog.js');
