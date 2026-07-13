@@ -165,4 +165,116 @@ app.post('/api/verify-email', async (req, res) =>
 
     return res.status(200).json(ret);
 });
+
+ app.get('/api/account/profile', verifyJWT, async (req, res) =>
+    {
+        try
+        {
+            const user = await User.findById(req.user.userId)
+                .select('-password -verificationToken');
+
+            if (!user)
+            {
+                return res.status(404).json({
+                    error: "User not found."
+                });
+            }
+
+            return res.status(200).json(user);
+        }
+        catch (e)
+        {
+            return res.status(500).json({
+                error: e.message
+            });
+        }
+    });
+
+    // =========================
+    // Get User by ID
+    // =========================
+    app.get('/api/account/:id', verifyJWT, async (req, res) =>
+    {
+        try
+        {
+            const user = await User.findById(req.params.id)
+                .select('-password -verificationToken');
+
+            if (!user)
+            {
+                return res.status(404).json({
+                    error: "User not found."
+                });
+            }
+
+            return res.status(200).json(user);
+        }
+        catch (e)
+        {
+            return res.status(500).json({
+                error: e.message
+            });
+        }
+    });
+
+    // =========================
+    // Get All Users
+    // =========================
+    app.get('/api/accounts',
+        verifyJWT,
+        requireRole("coach"),
+        async (req, res) =>
+    {
+        try
+        {
+            const users = await User.find()
+                .select('-password -verificationToken');
+
+            return res.status(200).json(users);
+        }
+        catch (e)
+        {
+            return res.status(500).json({
+                error: e.message
+            });
+        }
+    });
+
+    // =========================
+    // Get Users by Role
+    // =========================
+    app.get('/api/accounts/role/:role',
+        verifyJWT,
+        async (req, res) =>
+    {
+        try
+        {
+            const users = await User.find({
+                role: req.params.role
+            }).select('-password -verificationToken');
+
+            return res.status(200).json(users);
+
+        }
+        catch (e)
+        {
+            return res.status(500).json({
+                error: e.message
+            });
+        }
+    });
+
+    // =========================
+    // Validate JWT
+    // =========================
+    app.get('/api/account/validate',
+        verifyJWT,
+        async (req, res) =>
+    {
+        return res.status(200).json({
+            loggedIn: true,
+            userId: req.user.userId,
+            role: req.user.role
+        });
+    });
 }
