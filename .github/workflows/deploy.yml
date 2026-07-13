@@ -25,11 +25,11 @@ jobs:
             frontend/package-lock.json
       
       - name: Install frontend dependencies
-        working-directory: ./frontend
+        working-directory: ./web
         run: npm ci
 
       - name: Build frontend
-        working-directory: ./frontend
+        working-directory: ./web
         run: npm run build
 
       - name: Deploy frontend to server
