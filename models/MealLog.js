@@ -5,7 +5,7 @@ const MealLogSchema = new Schema(
 {
     member:
     {
-        type: Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'Athlete',
         required: true
     },
