@@ -1,3 +1,4 @@
+require('express');
 const token = require('../createJWT.js');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
