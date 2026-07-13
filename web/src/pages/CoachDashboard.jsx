@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Container, Form, Button, Row, Col, Alert } from 'react-bootstrap';
-import { createExercise, assignExercise, addTeamMember } from '../api/assignments';
+import { createExercise, assignExercise, addTeamAthlete } from '../api/assignments';
 
 export default function CoachDashboard() {
   const [exercise, setExercise] = useState({ name: '', description: '', targetDurationMinutes: 30 });
-  const [assignment, setAssignment] = useState({ exerciseId: '', memberId: '', dueDate: '' });
-  const [memberEmail, setMemberEmail] = useState('');
+  const [assignment, setAssignment] = useState({ exerciseId: '', athleteId: '', dueDate: '' });
+  const [athleteEmail, setAthleteEmail] = useState('');
   const [msg, setMsg] = useState(null);
 
   const handleCreateExercise = async (e) => {
@@ -20,11 +20,11 @@ export default function CoachDashboard() {
     setMsg('Assigned.');
   };
 
-  const handleAddMember = async (e) => {
+  const handleAddAthlete = async (e) => {
     e.preventDefault();
-    await addTeamMember(memberEmail);
-    setMsg(`Added ${memberEmail} to your team.`);
-    setMemberEmail('');
+    await addTeamAthlete(athleteEmail);
+    setMsg(`Added ${athleteEmail} to your team.`);
+    setAthleteEmail('');
   };
 
   return (
@@ -34,13 +34,13 @@ export default function CoachDashboard() {
 
       <Row className="mt-4">
         <Col md={4}>
-          <h5>Add Team Member</h5>
-          <Form onSubmit={handleAddMember}>
+          <h5>Add Team Athlete</h5>
+          <Form onSubmit={handleAddAthlete}>
             <Form.Control
-              className="mb-2" placeholder="member@email.com"
-              value={memberEmail} onChange={(e) => setMemberEmail(e.target.value)} required
+              className="mb-2" placeholder="athlete@email.com"
+              value={athleteEmail} onChange={(e) => setAthleteEmail(e.target.value)} required
             />
-            <Button type="submit" size="sm">Add Member</Button>
+            <Button type="submit" size="sm">Add Athlete</Button>
           </Form>
         </Col>
 
@@ -70,9 +70,9 @@ export default function CoachDashboard() {
               onChange={(e) => setAssignment({ ...assignment, exerciseId: e.target.value })} required
             />
             <Form.Control
-              className="mb-2" placeholder="Member ID"
-              value={assignment.memberId}
-              onChange={(e) => setAssignment({ ...assignment, memberId: e.target.value })} required
+              className="mb-2" placeholder="Athlete ID"
+              value={assignment.athleteId}
+              onChange={(e) => setAssignment({ ...assignment, athleteId: e.target.value })} required
             />
             <Form.Control
               className="mb-2" type="date"

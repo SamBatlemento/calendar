@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Container, ListGroup, Form, Button, Tabs, Tab, Alert } from 'react-bootstrap';
 import { getMyAssignments, logExerciseTime, logMeal } from '../api/assignments';
 
-export default function MemberDashboard() {
+export default function AthleteDashboard() {
   const [range, setRange] = useState('today');
   const [assignments, setAssignments] = useState([]);
   const [meal, setMeal] = useState({ name: '', calories: '' });

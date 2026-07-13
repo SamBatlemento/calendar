@@ -9,6 +9,10 @@ const UserSchema = new Schema(
         password: { type: String, required: true, select: false },
         firstName: { type: String, required: true, trim: true },
         lastName: { type: String, required: true, trim: true }, 
+        verified: { type: Boolean, default: false },
+        verificationToken: { type: String, select: false },
+        passwordResetToken: { type: String, select: false },
+        passwordResetExpires: { type: Date, select: false },
     },
     options
 );
