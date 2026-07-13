@@ -1,15 +1,7 @@
 
 require('express');
-const token = require('../createJWT.js');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User.js');
-const Coach = require('../models/Coach.js');
-const Athlete = require('../models/Athlete.js');
-const Team = require('../models/Team.js');
-const Exercise = require('../models/Exercise.js');
-const Assignment = require('../models/Assignment.js');
-const ExerciseLog = require('../models/ExerciseLog.js');
-const MealLog = require('../models/MealLog.js');
 const {verifyJWT, requireRole} = require("../middleware/auth.js");
 
 const crypto = require("crypto");
@@ -122,6 +114,46 @@ app.post('/api/reset-password', async (req, res) =>
 
         return res.status(200).json({
             message: "Password reset successfully."
+        });
+    }
+    catch (e)
+    {
+        return res.status(500).json({
+            error: e.message
+        });
+    }
+});
+
+// =========================
+// Validate Password Reset Token
+// =========================
+app.get('/api/reset-password/:token', async (req, res) =>
+{
+    try
+    {
+        const user = await User.findOne({
+            passwordResetToken: req.params.token
+        });
+
+        if (!user)
+        {
+            return res.status(400).json({
+                valid: false,
+                error: "Invalid reset token."
+            });
+        }
+
+        if (!user.passwordResetExpires ||
+            user.passwordResetExpires < Date.now())
+        {
+            return res.status(400).json({
+                valid: false,
+                error: "Reset token has expired."
+            });
+        }
+
+        return res.status(200).json({
+            valid: true
         });
     }
     catch (e)
