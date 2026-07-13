@@ -1,16 +1,7 @@
 
 require('express');
-const token = require('../createJWT.js');
-const bcrypt = require('bcryptjs');
-const User = require('../models/User.js');
-const Coach = require('../models/Coach.js');
-const Athlete = require('../models/Athlete.js');
-const Team = require('../models/Team.js');
-const Exercise = require('../models/Exercise.js');
-const Assignment = require('../models/Assignment.js');
-const ExerciseLog = require('../models/ExerciseLog.js');
 const MealLog = require('../models/MealLog.js');
-const {verifyJWT, requireRole} = require("../middleware/auth.js");
+const { verifyJWT, requireRole } = require("../middleware/auth.js");
 
 const crypto = require("crypto");
 
@@ -23,7 +14,6 @@ app.post('/api/meal-log', verifyJWT, requireRole("Athlete"), async (req, res) =>
 
     try
     {
-        // Validate input
         if (!meal || calories == null)
         {
             return res.status(400).json({
@@ -31,20 +21,80 @@ app.post('/api/meal-log', verifyJWT, requireRole("Athlete"), async (req, res) =>
             });
         }
 
-        // Create the meal log
         const mealLog = await MealLog.create({
+            member: req.user.userId,
             meal,
             calories
         });
 
-        res.status(201).json({
+        return res.status(201).json({
             message: "Meal logged successfully.",
             mealLogId: mealLog._id
         });
     }
     catch (e)
     {
-        res.status(500).json({
+        return res.status(500).json({
+            error: e.message
+        });
+    }
+});
+
+// =========================
+// Get My Meal Logs (Athlete)
+// =========================
+app.get('/api/meal-log',
+    verifyJWT,
+    requireRole("Athlete"),
+    async (req, res) =>
+{
+    try
+    {
+        const mealLogs = await MealLog.find({
+            member: req.user.userId
+        });
+
+        return res.status(200).json(mealLogs);
+    }
+    catch (e)
+    {
+        return res.status(500).json({
+            error: e.message
+        });
+    }
+});
+
+// =========================
+// Get Meal Log by ID
+// =========================
+app.get('/api/meal-log/:id',
+    verifyJWT,
+    requireRole("Athlete"),
+    async (req, res) =>
+{
+    try
+    {
+        const mealLog = await MealLog.findById(req.params.id);
+
+        if (!mealLog)
+        {
+            return res.status(404).json({
+                error: "Meal log not found."
+            });
+        }
+
+        if (!mealLog.member.equals(req.user.userId))
+        {
+            return res.status(403).json({
+                error: "Not authorized."
+            });
+        }
+
+        return res.status(200).json(mealLog);
+    }
+    catch (e)
+    {
+        return res.status(500).json({
             error: e.message
         });
     }
