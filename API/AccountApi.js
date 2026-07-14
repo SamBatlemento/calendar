@@ -43,9 +43,21 @@ exports.setApp = function(app, mongoose)
                 user.role
             );
 
-            ret.role = user.role;
+            if(ret.error)
+            {
+                return res.status(500).json({ error: ret.error });
+            }
 
-            return res.status(200).json(ret);
+            return res.status(200).json({
+                token: ret.accessToken,
+                user: {
+                    id: user._id,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    email: user.email,
+                    role: user.role
+                }
+            });
         }
         catch (e)
         {

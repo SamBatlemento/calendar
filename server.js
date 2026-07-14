@@ -9,12 +9,17 @@ app.use(express.json());
 
 const mongoose = require('mongoose');
 
-console.log('URI loaded:', process.env.MONGODB_URI ? 'yes' : 'MISSING'); 
-
 mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log('MongoDB connected'))
-  .catch(err => console.log(err));
-
+  .then(() => {
+    console.log('MongoDB connected');
+    app.listen(process.env.PORT || 5000, () =>
+    console.log('Server running on port ${process.env.PORT || 5000}'));
+  })
+  .catch(err => {
+    console.error('MongoDB connection failed:', err);
+    process.exit(1);
+  });
+  
 const accountApi = require('./API/AccountApi.js');
 const passwordApi = require('./API/PasswordApi.js');
 const memberApi = require('./API/MemberApi.js');
@@ -28,5 +33,3 @@ memberApi.setApp(app, mongoose);
 exercisesApi.setApp(app, mongoose);
 assignmentsApi.setApp(app, mongoose);
 mealApi.setApp(app, mongoose);
-
-app.listen(process.env.PORT || 5000);
