@@ -166,6 +166,18 @@ exports.setApp = function(app, mongoose)
     });
 
     // =========================
+    // Validate JWT
+    // =========================
+    app.get('/api/account/validate', verifyJWT, async (req, res) =>
+    {
+        return res.status(200).json({
+            loggedIn: true,
+            userId: req.user.userId,
+            role: req.user.role
+        });
+    });
+
+    // =========================
     // Get Logged-in User Profile
     // =========================
     app.get('/api/account/profile', verifyJWT, async (req, res) =>
@@ -197,6 +209,11 @@ exports.setApp = function(app, mongoose)
     // =========================
     app.get('/api/account/:id', verifyJWT, async (req, res) =>
     {
+        if(!mongoose.Types.ObjectId.isValid(req.params.id))
+        {
+            return res.status(400).json({ error: "Invalid user ID."});
+        }
+        
         try
         {
             const user = await User.findById(req.params.id)
@@ -258,17 +275,5 @@ exports.setApp = function(app, mongoose)
                 error: e.message
             });
         }
-    });
-
-    // =========================
-    // Validate JWT
-    // =========================
-    app.get('/api/account/validate', verifyJWT, async (req, res) =>
-    {
-        return res.status(200).json({
-            loggedIn: true,
-            userId: req.user.userId,
-            role: req.user.role
-        });
     });
 }
