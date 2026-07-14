@@ -4,6 +4,8 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 
 const User = require('../models/User.js');
+const Coach = require('../models/Coach.js');
+const Athlete = require('../models/Athlete.js');
 
 const { verifyJWT, requireRole } = require("../middleware/auth.js");
 
@@ -83,6 +85,11 @@ exports.setApp = function(app, mongoose)
                 });
             }
 
+            if(role !== 'Coach' && role !== 'Athlete')
+            {
+                return res.status(400).json({ error: "Role must be 'Coach' or 'Athlete'."});
+            }
+
             const existingUser = await User.findOne({
                 email: email.toLowerCase()
             });
@@ -98,12 +105,12 @@ exports.setApp = function(app, mongoose)
 
             const verificationToken = crypto.randomBytes(32).toString("hex");
 
-            const user = await User.create({
+            const Model = role === 'Coach' ? Coach : Athlete;
+            const user = await Model.create({
                 firstName,
                 lastName,
                 email: email.toLowerCase(),
                 password: hashedPassword,
-                role,
                 verified: false,
                 verificationToken
             });
@@ -166,6 +173,18 @@ exports.setApp = function(app, mongoose)
     });
 
     // =========================
+    // Validate JWT
+    // =========================
+    app.get('/api/account/validate', verifyJWT, async (req, res) =>
+    {
+        return res.status(200).json({
+            loggedIn: true,
+            userId: req.user.userId,
+            role: req.user.role
+        });
+    });
+
+    // =========================
     // Get Logged-in User Profile
     // =========================
     app.get('/api/account/profile', verifyJWT, async (req, res) =>
@@ -197,6 +216,11 @@ exports.setApp = function(app, mongoose)
     // =========================
     app.get('/api/account/:id', verifyJWT, async (req, res) =>
     {
+        if(!mongoose.Types.ObjectId.isValid(req.params.id))
+        {
+            return res.status(400).json({ error: "Invalid user ID."});
+        }
+
         try
         {
             const user = await User.findById(req.params.id)
@@ -258,17 +282,5 @@ exports.setApp = function(app, mongoose)
                 error: e.message
             });
         }
-    });
-
-    // =========================
-    // Validate JWT
-    // =========================
-    app.get('/api/account/validate', verifyJWT, async (req, res) =>
-    {
-        return res.status(200).json({
-            loggedIn: true,
-            userId: req.user.userId,
-            role: req.user.role
-        });
     });
 }

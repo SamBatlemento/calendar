@@ -7,6 +7,7 @@ const Assignment = require('../models/Assignment.js');
 const { verifyJWT, requireRole } = require("../middleware/auth.js");
 
 const crypto = require("crypto");
+const ExerciseLog = require('../models/ExerciseLog.js');
 
 exports.setApp = function(app, mongoose)
 {
@@ -133,7 +134,23 @@ app.get('/api/my-assignments', verifyJWT, requireRole("Athlete"), async (req, re
         }
 
         const assignments = await Assignment.find(query)
-            .populate("exercise");
+            .populate("exercise")
+            .lean();
+
+        const logs = await ExerciseLog.find({
+            assignment: { $in: assignments.map(a => a._id) }
+        }).lean();
+
+        const minutesByAssignment = {};
+        for(const log of logs)
+        {
+            minutesByAssignment[log.assignment] = (minutesByAssignment[log.assignment] || 0) + log.minutes;
+        }
+
+        const result = assignments.map(a => ({
+            ...a,
+            loggedMinutes: minutesByAssignment[a._id] || null
+        }));
 
         res.status(200).json(assignments);
     }
