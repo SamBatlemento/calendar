@@ -1,16 +1,29 @@
 import { useState, useEffect } from 'react';
 import { Container, ListGroup, Form, Button, Tabs, Tab, Alert } from 'react-bootstrap';
-import { getMyAssignments, logExerciseTime, logMeal } from '../api/assignments';
+import { getMyAssignments, logExerciseTime, logMeal, getMyMeals } from '../api/assignments';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function AthleteDashboard() {
   const [range, setRange] = useState('today');
   const [assignments, setAssignments] = useState([]);
   const [meal, setMeal] = useState({ name: '', calories: '' });
+  const [meals, setMeals] = useState([]);
   const [msg, setMsg] = useState(null);
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+  logout();
+  navigate('/login');
+  };
 
   useEffect(() => {
     getMyAssignments(range).then(({ data }) => setAssignments(data));
   }, [range]);
+  useEffect(() => {
+  getMyMeals().then(({ data }) => setMeals(data));
+  }, []);
 
   const handleLogTime = async (assignmentId, minutes) => {
     await logExerciseTime(assignmentId, minutes);
@@ -20,17 +33,18 @@ export default function AthleteDashboard() {
   };
 
   const handleLogMeal = async (e) => {
-    e.preventDefault();
-    await logMeal({ ...meal, date: new Date().toISOString() });
-    setMsg('Meal logged.');
-    setMeal({ name: '', calories: '' });
+  e.preventDefault();
+  await logMeal({ ...meal, date: new Date().toISOString() });
+  setMeal({ name: '', calories: '' });
+  const { data } = await getMyMeals();
+  setMeals(data);
   };
 
   return (
     <Container className="mt-4">
       <h2>My Calendar</h2>
       {msg && <Alert variant="info" onClose={() => setMsg(null)} dismissible>{msg}</Alert>}
-
+    
       <Tabs activeKey={range} onSelect={(k) => setRange(k)} className="mb-3">
         <Tab eventKey="today" title="Today" />
         <Tab eventKey="week" title="This Week" />
@@ -66,6 +80,7 @@ export default function AthleteDashboard() {
         />
         <Button type="submit">Log</Button>
       </Form>
+      <Button variant="outline-secondary" size="sm" onClick={handleLogout}>Sign Out</Button>
     </Container>
   );
 }

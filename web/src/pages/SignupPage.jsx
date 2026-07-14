@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Form, Button, Container, Alert } from 'react-bootstrap';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate, Link } from 'react-router-dom';
 
 export default function SignupPage() {
   const { signup } = useAuth();
@@ -60,6 +61,9 @@ export default function SignupPage() {
         </Form.Group>
         <Button type="submit" className="w-100">Sign Up</Button>
       </Form>
+      <div className="text-center mt-3">
+        Already have an account? <Link to="/login">Log in</Link>
+      </div>
     </Container>
   );
 }
