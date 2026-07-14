@@ -1,12 +1,21 @@
 import { useState } from 'react';
 import { Container, Form, Button, Row, Col, Alert } from 'react-bootstrap';
 import { createExercise, assignExercise, addTeamAthlete } from '../api/assignments';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 export default function CoachDashboard() {
   const [exercise, setExercise] = useState({ name: '', description: '', targetDurationMinutes: 30 });
   const [assignment, setAssignment] = useState({ exerciseId: '', athleteId: '', dueDate: '' });
   const [athleteEmail, setAthleteEmail] = useState('');
   const [msg, setMsg] = useState(null);
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+  
+  const handleLogout = () => {
+  logout();
+  navigate('/login');
+  };
 
   const handleCreateExercise = async (e) => {
     e.preventDefault();
@@ -81,6 +90,7 @@ export default function CoachDashboard() {
             />
             <Button type="submit" size="sm">Assign</Button>
           </Form>
+          <Button variant="outline-secondary" size="sm" onClick={handleLogout}>Sign Out</Button>
         </Col>
       </Row>
     </Container>
