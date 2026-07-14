@@ -24,6 +24,19 @@ const MealLogSchema = new Schema(
         min: 0
     },
 
+    time:
+    {
+        type: String,
+        required: true,
+        trim: true
+    },
+
+    date:
+    {
+        type: Date,
+        required: true
+    },
+
     loggedAt:
     {
         type: Date,

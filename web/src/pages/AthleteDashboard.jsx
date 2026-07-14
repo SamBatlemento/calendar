@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext';
 export default function AthleteDashboard() {
   const [range, setRange] = useState('today');
   const [assignments, setAssignments] = useState([]);
-  const [meal, setMeal] = useState({ name: '', calories: '' });
+  const [meal, setMeal] = useState({ name: '', calories: '' , time: '', date: ''});
   const [meals, setMeals] = useState([]);
   const [msg, setMsg] = useState(null);
   const { logout } = useAuth();
@@ -34,8 +34,8 @@ export default function AthleteDashboard() {
 
   const handleLogMeal = async (e) => {
   e.preventDefault();
-  await logMeal({ ...meal, date: new Date().toISOString() });
-  setMeal({ name: '', calories: '' });
+  await logMeal({ ...meal, date: meal.date ? new Date().toISOString() : new Date().toISOString() });
+  setMeal({ name: '', calories: '', time: '', date: '' });
   const { data } = await getMyMeals();
   setMeals(data);
   };
