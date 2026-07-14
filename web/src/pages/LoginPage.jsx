@@ -16,7 +16,7 @@ export default function LoginPage() {
       const user = await login(form.email, form.password);
       navigate(user.role === 'Coach' ? '/coach' : '/athlete');
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid email or password.');
+      setError(err.response?.data?.error || 'Invalid email or password.');
     }
   };
 
