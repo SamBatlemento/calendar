@@ -1,13 +1,16 @@
+require('dotenv').config();
 require('./models/index.js');
 const express = require('express');
 const cors = require('cors');
-require('dotenv').config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
 const mongoose = require('mongoose');
+
+console.log('URI loaded:', process.env.MONGODB_URI ? 'yes' : 'MISSING'); 
+
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.log(err));
