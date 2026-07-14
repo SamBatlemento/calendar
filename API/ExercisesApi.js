@@ -78,16 +78,21 @@ app.post('/api/exercise-log', verifyJWT, requireRole("Athlete"), async (req, res
             });
         }
 
+        if(assignment.completed)
+        {
+            return res.status(400).json({
+                error: "Time has already been logged for this assignment."
+            });
+        }
+
         // Create the exercise log
         const log = await ExerciseLog.create({
             assignment: assignmentId,
             minutes
         });
 
-        res.status(201).json({
-            message: "Exercise time logged successfully.",
-            logId: log._id
-        });
+        assignment.completed = true;
+        await assignment.save();
     }
     catch (e)
     {
