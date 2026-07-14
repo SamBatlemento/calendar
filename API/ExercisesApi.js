@@ -168,6 +168,12 @@ app.get('/api/exercise-log',
                 populate: { path: "exercise" }
             });
 
+
+        if(!log.assignment || !log.assignment.member.equals(req.user.userId))
+        {
+            return res.status(403).json({ error: "Not authorized"});
+        }
+
         const filteredLogs = logs.filter(log => log.assignment);
 
         return res.status(200).json(filteredLogs);

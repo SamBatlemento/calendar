@@ -3,6 +3,7 @@ require('express');
 const Athlete = require('../models/Athlete.js');
 const Exercise = require('../models/Exercise.js');
 const Assignment = require('../models/Assignment.js');
+const Team = require('../models/Team.js');
 
 const { verifyJWT, requireRole } = require("../middleware/auth.js");
 
@@ -19,6 +20,7 @@ app.post('/api/assignments', verifyJWT, requireRole("Coach"), async (req, res) =
 
     try
     {
+
         // Validate input
         if (!exerciseId || !memberId || !dueDate)
         {
@@ -45,6 +47,14 @@ app.post('/api/assignments', verifyJWT, requireRole("Coach"), async (req, res) =
             return res.status(404).json({
                 error: "Team member not found."
             });
+        }
+
+
+        const team = await Team.findOne({coach: req.user.userId });
+
+        if(!team || !team.members.some(m => m.equals(req.params.memberId)))
+        {
+            return res.status(403).json({ error: "That athlete is not on your team." });
         }
 
         // Create the assignment
@@ -171,6 +181,14 @@ app.get('/api/assignments/:id',
 {
     try
     {
+        const isOwner = assignment.member._id.equals(req.user.userId);
+        const isCoach = req.user.role === 'Coach';
+
+        if(!isOwner && !isCoach)
+        {
+            return res.status(403).json({ error: "Not authorized."});
+        }
+
         const assignment = await Assignment.findById(req.params.id)
             .populate("exercise")
             .populate("member");
@@ -202,6 +220,14 @@ app.get('/api/assignments/member/:memberId',
 {
     try
     {
+        const team = await Team.findOne({coach: req.user.userId });
+
+        if(!team || !team.members.some(m => m.equals(req.params.memberId)))
+        {
+            return res.status(403).json({ error: "That athlete is not on your team." });
+        }
+
+
         const assignments = await Assignment.find({
             member: req.params.memberId
         })
