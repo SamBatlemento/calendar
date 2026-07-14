@@ -17,11 +17,11 @@ export default function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route
             path="/coach"
-            element={<ProtectedRoute role="coach"><CoachDashboard /></ProtectedRoute>}
+            element={<ProtectedRoute role="Coach"><CoachDashboard /></ProtectedRoute>}
           />
           <Route
             path="/athlete"
-            element={<ProtectedRoute role="athlete"><AthleteDashboard /></ProtectedRoute>}
+            element={<ProtectedRoute role="Athlete"><AthleteDashboard /></ProtectedRoute>}
           />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
