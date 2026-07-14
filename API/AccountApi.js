@@ -63,9 +63,8 @@ exports.setApp = function(app, mongoose)
         }
         catch (e)
         {
-            return res.status(500).json({
-                error: e.message
-            });
+            console.error(e);
+            return res.status(500).json({ error: "Internal server error" });
         }
     });
 
@@ -122,9 +121,8 @@ exports.setApp = function(app, mongoose)
         }
         catch (e)
         {
-            return res.status(500).json({
-                error: e.message
-            });
+            console.error(e);
+            return res.status(500).json({ error: "Internal server error" });
         }
     });
 
@@ -166,9 +164,8 @@ exports.setApp = function(app, mongoose)
         }
         catch (e)
         {
-            return res.status(500).json({
-                error: e.message
-            });
+            console.error(e);
+            return res.status(500).json({ error: "Internal server error" });
         }
     });
 
@@ -205,9 +202,8 @@ exports.setApp = function(app, mongoose)
         }
         catch (e)
         {
-            return res.status(500).json({
-                error: e.message
-            });
+            console.error(e);
+            return res.status(500).json({ error: "Internal server error" });
         }
     });
 
@@ -237,9 +233,8 @@ exports.setApp = function(app, mongoose)
         }
         catch (e)
         {
-            return res.status(500).json({
-                error: e.message
-            });
+            console.error(e);
+            return res.status(500).json({ error: "Internal server error" });
         }
     });
 
@@ -257,9 +252,8 @@ exports.setApp = function(app, mongoose)
         }
         catch (e)
         {
-            return res.status(500).json({
-                error: e.message
-            });
+            console.error(e);
+            return res.status(500).json({ error: "Internal server error" });
         }
     });
 
@@ -278,9 +272,8 @@ exports.setApp = function(app, mongoose)
         }
         catch (e)
         {
-            return res.status(500).json({
-                error: e.message
-            });
+            console.error(e);
+            return res.status(500).json({ error: "Internal server error" });
         }
     });
 }

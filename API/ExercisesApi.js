@@ -42,9 +42,8 @@ app.post('/api/exercises', verifyJWT, requireRole("Coach"), async (req, res) =>
     }
     catch (e)
     {
-        res.status(500).json({
-            error: e.message
-        });
+        console.error(e);
+        return res.status(500).json({ error: "Internal server error" });
     }
 });
 
@@ -96,9 +95,8 @@ app.post('/api/exercise-log', verifyJWT, requireRole("Athlete"), async (req, res
     }
     catch (e)
     {
-        res.status(500).json({
-            error: e.message
-        });
+        console.error(e);
+        return res.status(500).json({ error: "Internal server error" });
     }
 });
 
@@ -117,9 +115,8 @@ app.get('/api/exercises',
     }
     catch (e)
     {
-        return res.status(500).json({
-            error: e.message
-        });
+        console.error(e);
+        return res.status(500).json({ error: "Internal server error" });
     }
 });
 
@@ -145,9 +142,8 @@ app.get('/api/exercises/:id',
     }
     catch (e)
     {
-        return res.status(500).json({
-            error: e.message
-        });
+        console.error(e);
+        return res.status(500).json({ error: "Internal server error" });
     }
 });
 
@@ -161,28 +157,17 @@ app.get('/api/exercise-log',
 {
     try
     {
-        const logs = await ExerciseLog.find()
-            .populate({
-                path: "assignment",
-                match: { member: req.user.userId },
-                populate: { path: "exercise" }
-            });
+        const assignmentIds = await Assignment.find({ member: req.user.userId }).distinct('_id');
 
+        const logs = await ExerciseLog.find({ assignment: { $in: assignmentIds } })
+            .populate({ path: "assignment", populate: { path: "exercise" } });
 
-        if(!log.assignment || !log.assignment.member.equals(req.user.userId))
-        {
-            return res.status(403).json({ error: "Not authorized"});
-        }
-
-        const filteredLogs = logs.filter(log => log.assignment);
-
-        return res.status(200).json(filteredLogs);
+        return res.status(200).json(logs);
     }
     catch (e)
     {
-        return res.status(500).json({
-            error: e.message
-        });
+        console.error(e);
+        return res.status(500).json({ error: "Internal server error" });
     }
 });
 
@@ -212,9 +197,8 @@ app.get('/api/exercise-log/:id',
     }
     catch (e)
     {
-        return res.status(500).json({
-            error: e.message
-        });
+        console.error(e);
+        return res.status(500).json({ error: "Internal server error" });
     }
 });
 }
