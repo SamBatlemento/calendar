@@ -1,53 +1,46 @@
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
-exports.createToken = function(fn, ln, id, role)
-{
-    return _createToken(fn, ln, id, role);
-}
 
-_createToken = function(fn, ln, id, role)
+
+function _createToken(fn, ln, id, role)
 {
     try
     {
         const user = {userId:id, firstName:fn, lastName:ln, role:role};
-
         const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {expiresIn: '20m'});
-        
-        var ret = {accessToken:accessToken};
+        return { accessToken };
     }
     catch(e)
     {
-        var ret = {error:e.message};
+        return {error:e.message};
     }
-    return ret;
 }
+
+exports._createToken = _createToken;
 
 exports.isExpired = function(token)
 {
-    var isError = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, verifiedJwt) =>
+    try
     {
-        if(err)
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    });
-
-    return isError;
+        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+        return false;
+    }
+    catch (e)
+    {
+        return true;
+    }
 }
 
 exports.refresh = function(token)
 {
-    var ud = jwt.decode(token, {complete:true});
-
-    var userId = ud.payload.id;
-    var firstName = ud.payload.firstName;
-    var lastName = ud.payload.lastName;
-    var role = ud.payload.role;
-
-    return _createToken(firstName, lastName, userId, role);
+    try
+    {
+        const ud = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, { ignoreExpiration: true });
+        return _createToken(ud.firstName, ud.lastName, ud.userId, ud.role);
+    }
+    catch (e)
+    {
+        return { error: "Invalid token" };
+    }
 }
