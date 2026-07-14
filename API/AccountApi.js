@@ -156,7 +156,7 @@ exports.setApp = function(app, mongoose)
             }
 
             user.verified = true;
-            user.verificationToken = null;
+            user.verificationToken = undefined;
 
             await user.save();
 

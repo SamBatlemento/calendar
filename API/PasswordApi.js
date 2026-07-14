@@ -36,10 +36,10 @@ app.post('/api/forgot-password', async (req, res) =>
 
         // Generate reset token
         const resetToken = crypto.randomBytes(32).toString("hex");
+        const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
 
-        user.passwordResetToken = resetToken;
-        user.passwordResetExpires = Date.now() + (1000 * 60 * 30); // 30 minutes
-
+        user.passwordResetToken = hashedToken;
+        user.passwordResetExpires = Date.now() = (1000 * 60 * 30);
         await user.save();
 
         // TODO:
@@ -82,10 +82,11 @@ app.post('/api/reset-password', async (req, res) =>
             });
         }
 
-        // Find the user with the matching token
+        const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
         const user = await User.findOne({
-            passwordResetToken: token
+            passwordResetToken: hashedToken
         }).select("+password");
+
 
         if (!user)
         {
@@ -107,8 +108,8 @@ app.post('/api/reset-password', async (req, res) =>
 
         // Update the user's password
         user.password = hashedPassword;
-        user.passwordResetToken = "";
-        user.passwordResetExpires = null;
+        user.passwordResetToken = undefined;
+        user.passwordResetExpires = undefined;
 
         await user.save();
 
@@ -131,9 +132,11 @@ app.get('/api/reset-password/:token', async (req, res) =>
 {
     try
     {
+        const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
         const user = await User.findOne({
-            passwordResetToken: req.params.token
-        });
+            passwordResetToken: hashedToken
+        }).select("+password");
+
 
         if (!user)
         {
