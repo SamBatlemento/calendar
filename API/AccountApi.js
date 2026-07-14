@@ -210,7 +210,7 @@ exports.setApp = function(app, mongoose)
     // =========================
     // Get All Users (Coach Only)
     // =========================
-    app.get('/api/accounts', verifyJWT, requireRole("coach"), async (req, res) =>
+    app.get('/api/accounts', verifyJWT, requireRole("Coach"), async (req, res) =>
     {
         try
         {
