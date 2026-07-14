@@ -19,21 +19,39 @@ export default function CoachDashboard() {
 
   const handleCreateExercise = async (e) => {
     e.preventDefault();
-    const { data } = await createExercise(exercise);
-    setMsg(`Exercise "${data.name}" created.`);
+    try
+    {
+      await createExercise(exercise);
+      setMsg('Exercise "${exercise.name}" created.');
+      setExercise({ name: '', description: '', targetDurationMinutes: 30});
+    }catch (err)
+    {
+      setMsg(err.response?.data?.error || 'Failed to create exercise');
+    }
   };
 
   const handleAssign = async (e) => {
     e.preventDefault();
-    await assignExercise(assignment);
-    setMsg('Assigned.');
+    try{
+      await assignExercise(assignment);
+      setMsg('Assigned.');
+    }catch (err)
+    {
+      setMsg(err.response?.data?.error || 'Failed to assign exercise.');
+    }
   };
 
   const handleAddAthlete = async (e) => {
     e.preventDefault();
-    await addTeamAthlete(athleteEmail);
-    setMsg(`Added ${athleteEmail} to your team.`);
-    setAthleteEmail('');
+    try
+    {
+      await addTeamAthlete(athleteEmail);
+      setMsg(`Added ${athleteEmail} to your team.`);
+      setAthleteEmail('');
+    }catch (err)
+    {
+      setMsg(err.response?.data?.error || 'Failed to add athlete.');
+    }
   };
 
   return (

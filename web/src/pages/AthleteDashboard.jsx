@@ -19,25 +19,40 @@ export default function AthleteDashboard() {
   };
 
   useEffect(() => {
-    getMyAssignments(range).then(({ data }) => setAssignments(data));
+    let cancelled = false;
+
+    getMyAssignments(range)
+      .then(({ data }) => { if (!cancelled) setAssignments(data); })
+      .catch((err) => { if (!cancelled) setMsg(err.response?.data?.error || 'Failed to load assignments.'); });
+    return () => { cancelled = true; };
   }, [range]);
   useEffect(() => {
   getMyMeals().then(({ data }) => setMeals(data));
   }, []);
 
   const handleLogTime = async (assignmentId, minutes) => {
-    await logExerciseTime(assignmentId, minutes);
-    setMsg('Time logged.');
-    const { data } = await getMyAssignments(range);
-    setAssignments(data);
+    try{
+      await logExerciseTime(assignmentId, minutes);
+      setMsg('Time logged.');
+      const { data } = await getMyAssignments(range);
+      setAssignments(data);
+    }catch (err)
+    {
+      setMsg(err.response?.data?.error || 'Failed to log time.');
+    }
   };
 
   const handleLogMeal = async (e) => {
-  e.preventDefault();
-  await logMeal({ ...meal, date: new Date().toISOString() });
-  setMeal({ name: '', calories: '' });
-  const { data } = await getMyMeals();
-  setMeals(data);
+    try{
+      e.preventDefault();
+      await logMeal({ ...meal, date: new Date().toISOString() });
+      setMeal({ name: '', calories: '' });
+      const { data } = await getMyMeals();
+      setMeals(data);
+    }catch (err)
+    {
+      setMsg(err.response?.data?.error || 'Failed to log meals.');
+    }
   };
 
   return (
