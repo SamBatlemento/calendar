@@ -62,9 +62,8 @@ app.post('/api/forgot-password', async (req, res) =>
     }
     catch (e)
     {
-        return res.status(500).json({
-            error: e.message
-        });
+        console.error(e);
+        return res.status(500).json({ error: "Internal server error" });
     }
 });
 
@@ -119,9 +118,8 @@ app.post('/api/reset-password', async (req, res) =>
     }
     catch (e)
     {
-        return res.status(500).json({
-            error: e.message
-        });
+        console.error(e);
+        return res.status(500).json({ error: "Internal server error" });
     }
 });
 
@@ -161,9 +159,8 @@ app.get('/api/reset-password/:token', async (req, res) =>
     }
     catch (e)
     {
-        return res.status(500).json({
-            error: e.message
-        });
+        console.error(e);
+        return res.status(500).json({ error: "Internal server error" });
     }
 });
 }

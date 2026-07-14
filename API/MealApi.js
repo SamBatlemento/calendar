@@ -34,9 +34,8 @@ app.post('/api/meal-log', verifyJWT, requireRole("Athlete"), async (req, res) =>
     }
     catch (e)
     {
-        return res.status(500).json({
-            error: e.message
-        });
+        console.error(e);
+        return res.status(500).json({ error: "Internal server error" });
     }
 });
 
@@ -58,9 +57,8 @@ app.get('/api/meal-log',
     }
     catch (e)
     {
-        return res.status(500).json({
-            error: e.message
-        });
+        console.error(e);
+        return res.status(500).json({ error: "Internal server error" });
     }
 });
 
@@ -94,9 +92,8 @@ app.get('/api/meal-log/:id',
     }
     catch (e)
     {
-        return res.status(500).json({
-            error: e.message
-        });
+        console.error(e);
+        return res.status(500).json({ error: "Internal server error" });
     }
 });
 }

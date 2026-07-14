@@ -34,18 +34,11 @@ app.post('/api/team/add-member', verifyJWT, requireRole("Coach"), async (req, re
             });
         }
 
-        let team = await Team.findOne({
-            coach: coachId
-        });
-
-        // Create the team if it doesn't exist yet
-        if (!team)
-        {
-            team = await Team.create({
-                coach: coachId,
-                members: []
-            });
-        }
+        let team = await Team.findOneAndUpdate(
+            { coach: coachId },
+            { $setOnInsert: { coach: coachId, members: [] } },
+            { new: true, upsert: true }
+        );
 
         // Prevent duplicate members
         if (team.members.some(member => member.equals(athlete._id)))
@@ -65,9 +58,8 @@ app.post('/api/team/add-member', verifyJWT, requireRole("Coach"), async (req, re
     }
     catch(err)
     {
-        res.status(500).json({
-            error: err.message
-        });
+        console.error(e);
+        return res.status(500).json({ error: "Internal server error" });
     }
 });
 
@@ -98,9 +90,8 @@ app.get('/api/team',
     }
     catch (e)
     {
-        return res.status(500).json({
-            error: e.message
-        });
+        console.error(e);
+        return res.status(500).json({ error: "Internal server error" });
     }
 });
 
@@ -130,9 +121,8 @@ app.get('/api/team/members',
     }
     catch (e)
     {
-        return res.status(500).json({
-            error: e.message
-        });
+        console.error(e);
+        return res.status(500).json({ error: "Internal server error" });
     }
 });
 
@@ -160,9 +150,8 @@ app.get('/api/team/:id',
     }
     catch (e)
     {
-        return res.status(500).json({
-            error: e.message
-        });
+        console.error(e);
+        return res.status(500).json({ error: "Internal server error" });
     }
 });
 }

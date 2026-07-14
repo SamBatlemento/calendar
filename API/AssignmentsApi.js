@@ -74,9 +74,8 @@ app.post('/api/assignments', verifyJWT, requireRole("Coach"), async (req, res) =
     }
     catch (e)
     {
-        res.status(500).json({
-            error: e.message
-        });
+        console.error(e);
+        return res.status(500).json({ error: "Internal server error" });
     }
 });
 
@@ -107,6 +106,7 @@ app.get('/api/my-assignments', verifyJWT, requireRole("Athlete"), async (req, re
             start.setHours(0,0,0,0);
 
             const end = new Date(today);
+            end.setDate(today.getDate() + 7);
             end.setHours(23,59,59,999);
 
             query.dueDate =
@@ -166,9 +166,8 @@ app.get('/api/my-assignments', verifyJWT, requireRole("Athlete"), async (req, re
     }
     catch(err)
     {
-        res.status(500).json({
-            error: err.message
-        });
+        console.error(e);
+        return res.status(500).json({ error: "Internal server error" });
     }
 });
 
@@ -204,9 +203,8 @@ app.get('/api/assignments/:id',
     }
     catch (e)
     {
-        return res.status(500).json({
-            error: e.message
-        });
+        console.error(e);
+        return res.status(500).json({ error: "Internal server error" });
     }
 });
 
@@ -238,9 +236,8 @@ app.get('/api/assignments/member/:memberId',
     }
     catch (e)
     {
-        return res.status(500).json({
-            error: e.message
-        });
+        console.error(e);
+        return res.status(500).json({ error: "Internal server error" });
     }
 });
 }
