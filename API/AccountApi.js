@@ -156,7 +156,7 @@ exports.setApp = function(app, mongoose)
             }
 
             user.verified = true;
-            user.verificationToken = null;
+            user.verificationToken = undefined;
 
             await user.save();
 
@@ -266,7 +266,7 @@ exports.setApp = function(app, mongoose)
     // =========================
     // Get Users by Role
     // =========================
-    app.get('/api/accounts/role/:role', verifyJWT, async (req, res) =>
+    app.get('/api/accounts/role/:role', verifyJWT, requireRole("Coach"), async (req, res) =>
     {
         try
         {
