@@ -30,7 +30,7 @@ export const getAssignmentsForMember = (memberId) =>
 export const logExerciseTime = (assignmentId, minutes) =>
   client.post('/exercise-log', { assignmentId, minutes });
 
-export const logMeal = ({ name, calories }) =>
-  client.post('/meal-log', { meal: name, calories: Number(calories)});
+export const logMeal = ({ name, calories, time, date }) =>
+  client.post('/meal-log', { meal: name, calories: Number(calories), time, date });
 
 export const getMyMeals = () => client.get('/meal-log');

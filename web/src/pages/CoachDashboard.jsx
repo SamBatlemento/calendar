@@ -32,7 +32,7 @@ export default function CoachDashboard() {
     try
     {
       await createExercise(exercise);
-      setMsg('Exercise "${exercise.name}" created.');
+      setMsg(`Exercise "${exercise.name}" created.`);
       setExercise({ name: '', description: '', targetDurationMinutes: 30});
     }catch (err)
     {
@@ -64,10 +64,14 @@ export default function CoachDashboard() {
     }
   };
 
-  const viewProgress = async (athleteId) => {
-    const { data } = await getAssignmentsForMember(athleteId);
-    setSelectedProgressMember({athleteId, assignments: data });
-  }
+  const viewProgress = async (member) => {
+    if (selectedProgressMember?.member._id === member._id) {
+      setSelectedProgressMember(null);
+      return;
+    }
+    const { data } = await getAssignmentsForMember(member._id);
+    setSelectedProgressMember({ member, assignments: data });
+  };
 
   return (
     <Container className="mt-4">
@@ -150,9 +154,9 @@ export default function CoachDashboard() {
 
       {selectedProgressMember && (
         <div>
-          <h6>{selectedProgressMember.athlete.firstName}'s Assignments</h6>
+            <h6>{selectedProgressMember.member.firstName}'s Assignments</h6>
           <ListGroup>
-            {selectedProgress.assignments.map((a) => (
+            {selectedProgressMember.assignments.map((a) => (
               <ListGroup.Item key={a._id} className="d-flex justify-content-between align-items-center">
                 {a.exercise.name} — due {new Date(a.dueDate).toLocaleDateString()}
                 <Badge bg={a.completed ? 'success' : 'secondary'}>

@@ -28,13 +28,14 @@ const MealLogSchema = new Schema(
     {
         type: String,
         required: true,
-        trim: true
+        enum: ['Breakfast', 'Lunch', 'Dinner', 'Snack']
     },
 
     date:
     {
         type: Date,
-        required: true
+        required: true,
+        default: Date.now
     },
 
     loggedAt:
