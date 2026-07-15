@@ -6,6 +6,7 @@ const crypto = require('crypto');
 const User = require('../models/User.js');
 const Coach = require('../models/Coach.js');
 const Athlete = require('../models/Athlete.js');
+const sendEmail = require('../utils/sendEmail.js');
 
 const { verifyJWT, requireRole } = require("../middleware/auth.js");
 
@@ -113,6 +114,12 @@ exports.setApp = function(app, mongoose)
                 verified: false,
                 verificationToken
             });
+
+            await sendEmail(
+                email,
+                'Verify your email',
+                `Click the link to verify your account: ${process.env.CLIENT_URL}/verify/${verificationToken}`
+            );
 
             return res.status(201).json({
                 message: "Account created successfully.",
