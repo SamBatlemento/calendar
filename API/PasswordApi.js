@@ -3,6 +3,7 @@ require('express');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User.js');
 const {verifyJWT, requireRole} = require("../middleware/auth.js");
+const sendEmail = require('../utils/sendEmail.js');
 
 const crypto = require("crypto");
 
@@ -39,22 +40,14 @@ app.post('/api/forgot-password', async (req, res) =>
         const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
 
         user.passwordResetToken = hashedToken;
-        user.passwordResetExpires = Date.now() = (1000 * 60 * 30);
+        user.passwordResetExpires = Date.now() + (1000 * 60 * 30);
         await user.save();
 
-        // TODO:
-        // Send the email with SendGrid
-        // Example reset link:
-        //
-        // https://yourfrontend.com/reset-password?token=${resetToken}
-        //
-        // sgMail.send({
-        //     to: user.email,
-        //     from: process.env.EMAIL_FROM,
-        //     subject: "Password Reset",
-        //     text: `Reset your password using this link:
-        //     https://yourfrontend.com/reset-password?token=${resetToken}`
-        // });
+        await sendEmail(
+            email,
+            'Reset your password',
+            `Click the link to reset your password: ${process.env.CLIENT_URL}/reset-password/${resetToken}`
+        );
 
         return res.status(200).json({
             message: "If an account with that email exists, a password reset email has been sent."
