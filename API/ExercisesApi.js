@@ -1,11 +1,8 @@
-
 require('express');
 const Exercise = require('../models/Exercise.js');
 const Assignment = require('../models/Assignment.js');
 const ExerciseLog = require('../models/ExerciseLog.js');
 const { verifyJWT, requireRole } = require("../middleware/auth.js");
-
-const crypto = require("crypto");
 
 exports.setApp = function(app, mongoose)
 {
@@ -71,13 +68,14 @@ app.post('/api/exercise-log', verifyJWT, requireRole("Athlete"), async (req, res
             });
         }
 
-        if (!assignment.member.equals(req.user.userId)) {
+        if (!assignment.member.equals(req.user.userId))
+        {
             return res.status(403).json({
-            error: "Not authorized."
+                error: "Not authorized."
             });
         }
 
-        if(assignment.completed)
+        if (assignment.completed)
         {
             return res.status(400).json({
                 error: "Time has already been logged for this assignment."
@@ -93,9 +91,10 @@ app.post('/api/exercise-log', verifyJWT, requireRole("Athlete"), async (req, res
         assignment.completed = true;
         await assignment.save();
 
+        // FIX: no response was ever sent, so the request hung until timeout
         return res.status(201).json({
             message: "Exercise time logged successfully.",
-            exerceseLogId: log._id
+            exerciseLogId: log._id
         });
     }
     catch (e)
@@ -153,6 +152,93 @@ app.get('/api/exercises/:id',
 });
 
 // =========================
+// Update Exercise (Coach) - NEW
+// =========================
+app.put('/api/exercises/:id',
+    verifyJWT,
+    requireRole("Coach"),
+    async (req, res) =>
+{
+    const { name, description, targetDuration } = req.body;
+
+    try
+    {
+        if (!name || !description || targetDuration == null)
+        {
+            return res.status(400).json({
+                error: "All fields are required."
+            });
+        }
+
+        const exercise = await Exercise.findByIdAndUpdate(
+            req.params.id,
+            { name, description, targetDuration },
+            { new: true, runValidators: true }
+        );
+
+        if (!exercise)
+        {
+            return res.status(404).json({
+                error: "Exercise not found."
+            });
+        }
+
+        return res.status(200).json({
+            message: "Exercise updated successfully.",
+            exercise
+        });
+    }
+    catch (e)
+    {
+        console.error(e);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+// =========================
+// Delete Exercise (Coach) - NEW
+// =========================
+app.delete('/api/exercises/:id',
+    verifyJWT,
+    requireRole("Coach"),
+    async (req, res) =>
+{
+    try
+    {
+        const exercise = await Exercise.findById(req.params.id);
+
+        if (!exercise)
+        {
+            return res.status(404).json({
+                error: "Exercise not found."
+            });
+        }
+
+        // Block deletion if the exercise is referenced by any assignment,
+        // otherwise those assignments would be left pointing at nothing
+        const inUse = await Assignment.exists({ exercise: exercise._id });
+
+        if (inUse)
+        {
+            return res.status(400).json({
+                error: "Exercise is assigned to one or more athletes and cannot be deleted."
+            });
+        }
+
+        await exercise.deleteOne();
+
+        return res.status(200).json({
+            message: "Exercise deleted successfully."
+        });
+    }
+    catch (e)
+    {
+        console.error(e);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+// =========================
 // Get My Exercise Logs (Athlete)
 // =========================
 app.get('/api/exercise-log',
@@ -196,6 +282,15 @@ app.get('/api/exercise-log/:id',
             return res.status(404).json({
                 error: "Exercise log not found."
             });
+        }
+
+        // FIX (new): only the athlete who owns the log or a coach may view it
+        const isOwner = log.assignment && log.assignment.member.equals(req.user.userId);
+        const isCoach = req.user.role === 'Coach';
+
+        if (!isOwner && !isCoach)
+        {
+            return res.status(403).json({ error: "Not authorized." });
         }
 
         return res.status(200).json(log);

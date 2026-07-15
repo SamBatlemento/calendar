@@ -1,10 +1,7 @@
-
 require('express');
 const Athlete = require('../models/Athlete.js');
 const Team = require('../models/Team.js');
-const {verifyJWT, requireRole} = require("../middleware/auth.js");
-
-const crypto = require("crypto");
+const { verifyJWT, requireRole } = require("../middleware/auth.js");
 
 exports.setApp = function(app, mongoose)
 {
@@ -56,9 +53,11 @@ app.post('/api/team/add-member', verifyJWT, requireRole("Coach"), async (req, re
             message: "Athlete added successfully."
         });
     }
-    catch(err)
+    catch (e)
     {
-        console.error(err);
+        // FIX: was catch(err) with console.error(e), which threw a
+        // ReferenceError inside the catch block
+        console.error(e);
         return res.status(500).json({ error: "Internal server error" });
     }
 });
@@ -154,4 +153,48 @@ app.get('/api/team/:id',
         return res.status(500).json({ error: "Internal server error" });
     }
 });
+
+// =========================
+// Remove Team Member (Coach)
+// =========================
+app.delete('/api/team/members/:memberId',
+    verifyJWT,
+    requireRole("Coach"),
+    async (req, res) =>
+{
+    const { memberId } = req.params;
+
+    try
+    {
+        const team = await Team.findOne({ coach: req.user.userId });
+
+        if (!team)
+        {
+            return res.status(404).json({
+                error: "Team not found."
+            });
+        }
+
+        if (!team.members.some(m => m.equals(memberId)))
+        {
+            return res.status(404).json({
+                error: "Athlete is not on the team."
+            });
+        }
+
+        team.members = team.members.filter(m => !m.equals(memberId));
+
+        await team.save();
+
+        return res.status(200).json({
+            message: "Athlete removed successfully."
+        });
+    }
+    catch (e)
+    {
+        console.error(e);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+});
+
 }

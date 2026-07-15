@@ -1,4 +1,3 @@
-
 require('express');
 const Athlete = require('../models/Athlete.js');
 const Exercise = require('../models/Exercise.js');
@@ -7,7 +6,6 @@ const Team = require('../models/Team.js');
 
 const { verifyJWT, requireRole } = require("../middleware/auth.js");
 
-const crypto = require("crypto");
 const ExerciseLog = require('../models/ExerciseLog.js');
 
 exports.setApp = function(app, mongoose)
@@ -20,7 +18,6 @@ app.post('/api/assignments', verifyJWT, requireRole("Coach"), async (req, res) =
 
     try
     {
-
         // Validate input
         if (!exerciseId || !memberId || !dueDate)
         {
@@ -49,10 +46,11 @@ app.post('/api/assignments', verifyJWT, requireRole("Coach"), async (req, res) =
             });
         }
 
+        // FIX: was req.params.memberId (undefined on this route), so this
+        // check failed for every request and always returned 403
+        const team = await Team.findOne({ coach: req.user.userId });
 
-        const team = await Team.findOne({coach: req.user.userId });
-
-        if(!team || !team.members.some(m => m.equals(req.params.memberId)))
+        if (!team || !team.members.some(m => m.equals(memberId)))
         {
             return res.status(403).json({ error: "That athlete is not on your team." });
         }
@@ -102,11 +100,11 @@ app.get('/api/my-assignments', verifyJWT, requireRole("Athlete"), async (req, re
 
         if (filter === "today")
         {
+            // FIX: end date was +7 days, making "today" identical to "week"
             const start = new Date(today);
             start.setHours(0,0,0,0);
 
             const end = new Date(today);
-            end.setDate(today.getDate() + 7);
             end.setHours(23,59,59,999);
 
             query.dueDate =
@@ -152,7 +150,7 @@ app.get('/api/my-assignments', verifyJWT, requireRole("Athlete"), async (req, re
         }).lean();
 
         const minutesByAssignment = {};
-        for(const log of logs)
+        for (const log of logs)
         {
             minutesByAssignment[log.assignment] = (minutesByAssignment[log.assignment] || 0) + log.minutes;
         }
@@ -162,10 +160,12 @@ app.get('/api/my-assignments', verifyJWT, requireRole("Athlete"), async (req, re
             loggedMinutes: minutesByAssignment[a._id] || null
         }));
 
-        res.status(200).json(assignments);
+        // FIX: was returning `assignments`, discarding loggedMinutes
+        res.status(200).json(result);
     }
-    catch(err)
+    catch (e)
     {
+        // FIX: was catch(err) with console.error(e)
         console.error(e);
         return res.status(500).json({ error: "Internal server error" });
     }
@@ -180,14 +180,8 @@ app.get('/api/assignments/:id',
 {
     try
     {
-        const isOwner = assignment.member._id.equals(req.user.userId);
-        const isCoach = req.user.role === 'Coach';
-
-        if(!isOwner && !isCoach)
-        {
-            return res.status(403).json({ error: "Not authorized."});
-        }
-
+        // FIX: assignment was referenced before it was fetched,
+        // which threw a ReferenceError on every request
         const assignment = await Assignment.findById(req.params.id)
             .populate("exercise")
             .populate("member");
@@ -197,6 +191,14 @@ app.get('/api/assignments/:id',
             return res.status(404).json({
                 error: "Assignment not found."
             });
+        }
+
+        const isOwner = assignment.member._id.equals(req.user.userId);
+        const isCoach = req.user.role === 'Coach';
+
+        if (!isOwner && !isCoach)
+        {
+            return res.status(403).json({ error: "Not authorized." });
         }
 
         return res.status(200).json(assignment);
@@ -218,13 +220,12 @@ app.get('/api/assignments/member/:memberId',
 {
     try
     {
-        const team = await Team.findOne({coach: req.user.userId });
+        const team = await Team.findOne({ coach: req.user.userId });
 
-        if(!team || !team.members.some(m => m.equals(req.params.memberId)))
+        if (!team || !team.members.some(m => m.equals(req.params.memberId)))
         {
             return res.status(403).json({ error: "That athlete is not on your team." });
         }
-
 
         const assignments = await Assignment.find({
             member: req.params.memberId
@@ -233,6 +234,99 @@ app.get('/api/assignments/member/:memberId',
         .populate("member");
 
         return res.status(200).json(assignments);
+    }
+    catch (e)
+    {
+        console.error(e);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+// =========================
+// Update Assignment (Coach) - NEW
+// =========================
+app.put('/api/assignments/:id',
+    verifyJWT,
+    requireRole("Coach"),
+    async (req, res) =>
+{
+    const { dueDate } = req.body;
+
+    try
+    {
+        if (!dueDate)
+        {
+            return res.status(400).json({
+                error: "Due date is required."
+            });
+        }
+
+        const assignment = await Assignment.findById(req.params.id);
+
+        if (!assignment)
+        {
+            return res.status(404).json({
+                error: "Assignment not found."
+            });
+        }
+
+        // Make sure the assignment belongs to an athlete on this coach's team
+        const team = await Team.findOne({ coach: req.user.userId });
+
+        if (!team || !team.members.some(m => m.equals(assignment.member)))
+        {
+            return res.status(403).json({ error: "That athlete is not on your team." });
+        }
+
+        assignment.dueDate = dueDate;
+        await assignment.save();
+
+        return res.status(200).json({
+            message: "Assignment updated successfully."
+        });
+    }
+    catch (e)
+    {
+        console.error(e);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+// =========================
+// Delete Assignment (Coach) - NEW
+// =========================
+app.delete('/api/assignments/:id',
+    verifyJWT,
+    requireRole("Coach"),
+    async (req, res) =>
+{
+    try
+    {
+        const assignment = await Assignment.findById(req.params.id);
+
+        if (!assignment)
+        {
+            return res.status(404).json({
+                error: "Assignment not found."
+            });
+        }
+
+        // Make sure the assignment belongs to an athlete on this coach's team
+        const team = await Team.findOne({ coach: req.user.userId });
+
+        if (!team || !team.members.some(m => m.equals(assignment.member)))
+        {
+            return res.status(403).json({ error: "That athlete is not on your team." });
+        }
+
+        // Clean up any logs tied to this assignment
+        await ExerciseLog.deleteMany({ assignment: assignment._id });
+
+        await assignment.deleteOne();
+
+        return res.status(200).json({
+            message: "Assignment deleted successfully."
+        });
     }
     catch (e)
     {
