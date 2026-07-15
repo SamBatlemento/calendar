@@ -3,7 +3,7 @@ require("dotenv").config();
 
 
 
-function _createToken(fn, ln, id, role)
+function createToken(fn, ln, id, role)
 {
     try
     {
@@ -17,7 +17,7 @@ function _createToken(fn, ln, id, role)
     }
 }
 
-exports._createToken = _createToken;
+exports.createToken = createToken;
 
 exports.isExpired = function(token)
 {
@@ -37,7 +37,7 @@ exports.refresh = function(token)
     try
     {
         const ud = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, { ignoreExpiration: true });
-        return _createToken(ud.firstName, ud.lastName, ud.userId, ud.role);
+        return createToken(ud.firstName, ud.lastName, ud.userId, ud.role);
     }
     catch (e)
     {

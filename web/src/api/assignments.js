@@ -20,10 +20,17 @@ export const assignExercise = ({ exerciseId, athleteId, dueDate }) =>
 export const getMyAssignments = (range) =>
   client.get('/my-assignments', { params: { filter: range } });
 
+export const getExercises = () => 
+  client.get('/exercises');
+export const getTeamMembers = () => 
+  client.get('/team/members');
+export const getAssignmentsForMember = (memberId) =>
+  client.get(`/assignments/member/${memberId}`);
+
 export const logExerciseTime = (assignmentId, minutes) =>
   client.post('/exercise-log', { assignmentId, minutes });
 
-export const logMeal = ({ name, calories }) =>
-  client.post('/meal-log', { meal: name, calories: Number(calories) });
+export const logMeal = ({ name, calories, time, date }) =>
+  client.post('/meal-log', { meal: name, calories: Number(calories), time, date });
 
 export const getMyMeals = () => client.get('/meal-log');

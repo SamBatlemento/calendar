@@ -41,6 +41,9 @@ export default function LoginPage() {
         </Form.Group>
         <Button type="submit" className="w-100">Log In</Button>
       </Form>
+      <div className="text-center mt-2">
+        <Link to="/forgot-password">Forgot password?</Link>
+      </div>
       <div className="text-center mt-3">
         Don't have an account? <Link to="/signup">Sign up</Link>
       </div>

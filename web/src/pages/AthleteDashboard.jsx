@@ -1,13 +1,19 @@
 import { useState, useEffect } from 'react';
-import { Container, ListGroup, Form, Button, Tabs, Tab, Alert } from 'react-bootstrap';
+import { Container, ListGroup, Form, Button, Tabs, Tab, Alert, Badge } from 'react-bootstrap';
 import { getMyAssignments, logExerciseTime, logMeal, getMyMeals } from '../api/assignments';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { Calendar, dayjsLocalizer } from 'react-big-calendar';
+import dayjs from 'dayjs';
+import 'react-big-calendar/lib/css/react-big-calendar.css';
+
+const localizer = dayjsLocalizer(dayjs);
 
 export default function AthleteDashboard() {
-  const [range, setRange] = useState('today');
+  const [range, setRange] = useState({start: dayjs().startOf('month').toISOString(), end: dayjs().endOf('month').toISOString(),});
+  const [selectedEvent, setSelectedEvent] = useState(null);
   const [assignments, setAssignments] = useState([]);
-  const [meal, setMeal] = useState({ name: '', calories: '' });
+  const [meal, setMeal] = useState({ name: '', calories: '', time: 'Breakfast', date: '' });
   const [meals, setMeals] = useState([]);
   const [msg, setMsg] = useState(null);
   const { logout } = useAuth();
@@ -19,16 +25,13 @@ export default function AthleteDashboard() {
   };
 
   useEffect(() => {
-    let cancelled = false;
-
-    getMyAssignments(range)
-      .then(({ data }) => { if (!cancelled) setAssignments(data); })
-      .catch((err) => { if (!cancelled) setMsg(err.response?.data?.error || 'Failed to load assignments.'); });
-    return () => { cancelled = true; };
+    getMyAssignments(range).then(({ data }) => setAssignments(data))
+      .catch((err) => setMsg(err.response?.data?.error || 'Failed to load assignments.'));
   }, [range]);
+
   useEffect(() => {
-  getMyMeals().then(({ data }) => setMeals(data));
-  }, []);
+    getMyMeals().then(({ data }) => setMeals(data));
+    }, []);
 
   const handleLogTime = async (assignmentId, minutes) => {
     try{
@@ -43,17 +46,30 @@ export default function AthleteDashboard() {
   };
 
   const handleLogMeal = async (e) => {
-    try{
-      e.preventDefault();
-      await logMeal({ ...meal, date: new Date().toISOString() });
-      setMeal({ name: '', calories: '' });
-      const { data } = await getMyMeals();
-      setMeals(data);
-    }catch (err)
-    {
-      setMsg(err.response?.data?.error || 'Failed to log meals.');
-    }
+    e.preventDefault();
+    await logMeal({
+      ...meal,
+      date: meal.date ? new Date(meal.date).toISOString() : new Date().toISOString(),
+    });
+    setMeal({ name: '', calories: '', time: 'Breakfast', date: '' });
+    const { data } = await getMyMeals();
+    setMeals(data);
   };
+
+  const events = assignments.map((a) => ({
+    id: a._id,
+    title: a.loggedMinutes ? `✓ ${a.exercise.name}` : a.exercise.name,
+    start: new Date(a.dueDate),
+    end: new Date(a.dueDate),
+    allDay: true,
+    resource: a,
+  }));
+
+const handleRangeChange = (visibleRange) => {
+  const start = Array.isArray(visibleRange) ? visibleRange[0] : visibleRange.start;
+  const end = Array.isArray(visibleRange) ? visibleRange[visibleRange.length - 1] : visibleRange.end;
+  setRange({ start: dayjs(start).toISOString(), end: dayjs(end).toISOString() });
+};
 
   return (
     <Container className="mt-4">
@@ -82,8 +98,7 @@ export default function AthleteDashboard() {
         ))}
       </ListGroup>
 
-      <h5>Log a Meal</h5>
-      <Form onSubmit={handleLogMeal} className="d-flex gap-2">
+      <Form onSubmit={handleLogMeal} className="d-flex gap-2 flex-wrap">
         <Form.Control
           placeholder="Meal name" value={meal.name}
           onChange={(e) => setMeal({ ...meal, name: e.target.value })} required
@@ -93,8 +108,48 @@ export default function AthleteDashboard() {
           value={meal.calories}
           onChange={(e) => setMeal({ ...meal, calories: e.target.value })} required
         />
+        <Form.Select
+          style={{ maxWidth: 160 }}
+          value={meal.time}
+          onChange={(e) => setMeal({ ...meal, time: e.target.value })}
+        >
+          <option>Breakfast</option>
+          <option>Lunch</option>
+          <option>Dinner</option>
+          <option>Snack</option>
+        </Form.Select>
+        <Form.Control
+          type="date" style={{ maxWidth: 180 }}
+          value={meal.date}
+          onChange={(e) => setMeal({ ...meal, date: e.target.value })}
+        />
         <Button type="submit">Log</Button>
       </Form>
+
+      <ListGroup className="mt-3">
+        {meals.map((m) => (
+          <ListGroup.Item key={m._id} className="d-flex justify-content-between align-items-center">
+            <div>
+              <strong>{m.meal}</strong> — {m.calories} cal
+              <span className="text-muted ms-2">{new Date(m.date).toLocaleDateString()}</span>
+            </div>
+            <Badge bg="secondary">{m.time}</Badge>
+          </ListGroup.Item>
+        ))}
+      </ListGroup>
+      <div style={{ height: 600 }}>
+        <Calendar
+          localizer={localizer}
+          events={events}
+          startAccessor="start"
+          endAccessor="end"
+          onSelectEvent={(event) => setSelectedEvent(event)}
+          onRangeChange={handleRangeChange}
+          eventPropGetter={(event) => ({
+            style: { backgroundColor: event.resource.loggedMinutes ? '#2f8f5b' : '#ff6b4a' },
+          })}
+        />
+      </div>
       <Button variant="outline-secondary" size="sm" onClick={handleLogout}>Sign Out</Button>
     </Container>
   );

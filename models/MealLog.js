@@ -24,6 +24,20 @@ const MealLogSchema = new Schema(
         min: 0
     },
 
+    time:
+    {
+        type: String,
+        required: true,
+        enum: ['Breakfast', 'Lunch', 'Dinner', 'Snack']
+    },
+
+    date:
+    {
+        type: Date,
+        required: true,
+        default: Date.now
+    },
+
     loggedAt:
     {
         type: Date,

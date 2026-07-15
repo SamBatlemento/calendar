@@ -10,21 +10,23 @@ exports.setApp = function(app, mongoose)
 
 app.post('/api/meal-log', verifyJWT, requireRole("Athlete"), async (req, res) =>
 {
-    const { meal, calories } = req.body;
+    const { meal, calories, time, date } = req.body;
 
     try
     {
-        if (!meal || calories == null)
+        if (!meal || calories == null || time == null || date == null)
         {
             return res.status(400).json({
-                error: "Meal and calories are required."
+                error: "All fields are required."
             });
         }
 
         const mealLog = await MealLog.create({
             member: req.user.userId,
             meal,
-            calories
+            calories,
+            time,
+            date
         });
 
         return res.status(201).json({
