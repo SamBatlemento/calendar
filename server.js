@@ -4,7 +4,7 @@ const express = require('express');
 const cors = require('cors');
 
 const app = express();
-app.use(cors( origin: 'https://cop4331-9.com' ));
+app.use(cors());
 app.use(express.json());
 
 const mongoose = require('mongoose');
