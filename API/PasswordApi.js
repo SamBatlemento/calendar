@@ -77,7 +77,7 @@ app.post('/api/reset-password', async (req, res) =>
         const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
         const user = await User.findOne({
             passwordResetToken: hashedToken
-        }).select("+password");
+        }).select("+password + passwordResetExpires");
 
 
         if (!user)
