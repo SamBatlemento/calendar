@@ -92,6 +92,11 @@ app.post('/api/exercise-log', verifyJWT, requireRole("Athlete"), async (req, res
 
         assignment.completed = true;
         await assignment.save();
+
+        return res.status(201).json({
+            message: "Exercise time logged successfully.",
+            exerceseLogId: log._id
+        });
     }
     catch (e)
     {

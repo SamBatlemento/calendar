@@ -58,7 +58,7 @@ app.post('/api/team/add-member', verifyJWT, requireRole("Coach"), async (req, re
     }
     catch(err)
     {
-        console.error(e);
+        console.error(err);
         return res.status(500).json({ error: "Internal server error" });
     }
 });
