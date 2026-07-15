@@ -1,9 +1,6 @@
-
 require('express');
 const MealLog = require('../models/MealLog.js');
 const { verifyJWT, requireRole } = require("../middleware/auth.js");
-
-const crypto = require("crypto");
 
 exports.setApp = function(app, mongoose)
 {
@@ -91,6 +88,98 @@ app.get('/api/meal-log/:id',
         }
 
         return res.status(200).json(mealLog);
+    }
+    catch (e)
+    {
+        console.error(e);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+// =========================
+// Update Meal Log (Athlete) - NEW
+// =========================
+app.put('/api/meal-log/:id',
+    verifyJWT,
+    requireRole("Athlete"),
+    async (req, res) =>
+{
+    const { meal, calories, time, date } = req.body;
+
+    try
+    {
+        if (!meal || calories == null || time == null || date == null)
+        {
+            return res.status(400).json({
+                error: "All fields are required."
+            });
+        }
+
+        const mealLog = await MealLog.findById(req.params.id);
+
+        if (!mealLog)
+        {
+            return res.status(404).json({
+                error: "Meal log not found."
+            });
+        }
+
+        if (!mealLog.member.equals(req.user.userId))
+        {
+            return res.status(403).json({
+                error: "Not authorized."
+            });
+        }
+
+        mealLog.meal = meal;
+        mealLog.calories = calories;
+        mealLog.time = time;
+        mealLog.date = date;
+
+        await mealLog.save();
+
+        return res.status(200).json({
+            message: "Meal log updated successfully."
+        });
+    }
+    catch (e)
+    {
+        console.error(e);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+// =========================
+// Delete Meal Log (Athlete) - NEW
+// =========================
+app.delete('/api/meal-log/:id',
+    verifyJWT,
+    requireRole("Athlete"),
+    async (req, res) =>
+{
+    try
+    {
+        const mealLog = await MealLog.findById(req.params.id);
+
+        if (!mealLog)
+        {
+            return res.status(404).json({
+                error: "Meal log not found."
+            });
+        }
+
+        if (!mealLog.member.equals(req.user.userId))
+        {
+            return res.status(403).json({
+                error: "Not authorized."
+            });
+        }
+
+        await mealLog.deleteOne();
+
+        return res.status(200).json({
+            message: "Meal log deleted successfully."
+        });
     }
     catch (e)
     {
