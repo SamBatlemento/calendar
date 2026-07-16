@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Container, Form, Button, Row, Col, Alert, ListGroup, Badge } from 'react-bootstrap';
-import { createExercise, assignExercise, addTeamAthlete, getExercises, getTeamMembers, getAssignmentsForMember } from '../api/assignments';
+import { Container, Form, Button, Row, Col, Alert, ListGroup, Badge, Modal } from 'react-bootstrap';
+import { createExercise, assignExercise, addTeamAthlete, getExercises, getTeamMembers, getAssignmentsForMember, updateExercise, deleteExercise, removeTeamMember } from '../api/assignments';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -14,6 +14,7 @@ export default function CoachDashboard() {
   const [selectedProgressMember, setSelectedProgressMember] = useState(null);
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const [editingExercise, setEditingExercise] = useState(null);
   
   const handleLogout = () => {
   logout();
@@ -73,6 +74,44 @@ export default function CoachDashboard() {
     setSelectedProgressMember({ member, assignments: data });
   };
 
+  const handleRemoveAthlete = async (memberId) => {
+    if (!window.confirm('Remove this athlete from your team?')) return;
+    try {
+      await removeTeamMember(memberId);
+      setMsg('Athlete removed.');
+      setSelectedProgressMember(null); // clear in case you were viewing this athlete's progress
+      loadDropdownData();
+    } catch (err) {
+      setMsg(err.response?.data?.error || 'Failed to remove athlete.');
+    }
+  };
+
+  const handleUpdateExercise = async (e) => {
+    e.preventDefault();
+    try {
+      await updateExercise(editingExercise._id, {
+        name: editingExercise.name,
+        description: editingExercise.description,
+        targetDurationMinutes: editingExercise.targetDuration,
+      });
+      setMsg('Exercise updated.');
+      setEditingExercise(null);
+      loadDropdownData();
+    } catch (err) {
+      setMsg(err.response?.data?.error || 'Failed to update exercise.');
+    }
+  };
+
+  const handleDeleteExercise = async (id) => {
+    try {
+      await deleteExercise(id);
+      setMsg('Exercise deleted.');
+      loadDropdownData();
+    } catch (err) {
+      setMsg(err.response?.data?.error || 'Failed to delete exercise.');
+    }
+  };
+
   return (
     <Container className="mt-4">
       <h2>Coach Dashboard</h2>
@@ -106,6 +145,64 @@ export default function CoachDashboard() {
             <Button type="submit" size="sm">Create</Button>
           </Form>
         </Col>
+
+        <hr className="my-4" />
+        <h5>Manage Exercises</h5>
+        <ListGroup className="mb-3">
+          {exercises.map((ex) => (
+            <ListGroup.Item key={ex._id} className="d-flex justify-content-between align-items-center">
+              <div>
+                <strong>{ex.name}</strong>
+                <span className="text-muted ms-2">{ex.targetDuration} min</span>
+              </div>
+              <div className="d-flex gap-2">
+                <Button size="sm" variant="outline-secondary" onClick={() => setEditingExercise({ ...ex })}>
+                  Edit
+                </Button>
+                <Button size="sm" variant="outline-danger" onClick={() => handleDeleteExercise(ex._id)}>
+                  Delete
+                </Button>
+              </div>
+            </ListGroup.Item>
+          ))}
+        </ListGroup>
+
+        <Modal show={!!editingExercise} onHide={() => setEditingExercise(null)}>
+          <Modal.Header closeButton><Modal.Title>Edit Exercise</Modal.Title></Modal.Header>
+          <Modal.Body>
+            {editingExercise && (
+              <Form onSubmit={handleUpdateExercise}>
+                <Form.Group className="mb-2">
+                  <Form.Label>Name</Form.Label>
+                  <Form.Control
+                    value={editingExercise.name}
+                    onChange={(e) => setEditingExercise({ ...editingExercise, name: e.target.value })}
+                    required
+                  />
+                </Form.Group>
+                <Form.Group className="mb-2">
+                  <Form.Label>Description</Form.Label>
+                  <Form.Control
+                    as="textarea" rows={2}
+                    value={editingExercise.description}
+                    onChange={(e) => setEditingExercise({ ...editingExercise, description: e.target.value })}
+                    required
+                  />
+                </Form.Group>
+                <Form.Group className="mb-3">
+                  <Form.Label>Target Duration (minutes)</Form.Label>
+                  <Form.Control
+                    type="number"
+                    value={editingExercise.targetDuration}
+                    onChange={(e) => setEditingExercise({ ...editingExercise, targetDuration: Number(e.target.value) })}
+                    required
+                  />
+                </Form.Group>
+                <Button type="submit" size="sm">Save Changes</Button>
+              </Form>
+            )}
+          </Modal.Body>
+        </Modal>
 
         <Col md={4}>
           <h5>Assign Exercise</h5>
@@ -145,9 +242,14 @@ export default function CoachDashboard() {
         {teamMembers.map((m) => (
           <ListGroup.Item key={m._id} className="d-flex justify-content-between align-items-center">
             {m.firstName} {m.lastName}
-            <Button size="sm" variant="outline-secondary" onClick={() => viewProgress(m)}>
-              View Progress
-            </Button>
+            <div className="d-flex gap-2">
+              <Button size="sm" variant="outline-secondary" onClick={() => viewProgress(m)}>
+                View Progress
+              </Button>
+              <Button size="sm" variant="outline-danger" onClick={() => handleRemoveAthlete(m._id)}>
+                Remove
+              </Button>
+            </div>
           </ListGroup.Item>
         ))}
       </ListGroup>

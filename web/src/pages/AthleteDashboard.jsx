@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Container, ListGroup, Form, Button, Tabs, Tab, Alert, Badge } from 'react-bootstrap';
-import { getMyAssignments, logExerciseTime, logMeal, getMyMeals } from '../api/assignments';
+import { getMyAssignments, logExerciseTime, logMeal, getMyMeals, updateExercise, deleteExercise } from '../api/assignments';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Calendar, dayjsLocalizer } from 'react-big-calendar';
@@ -18,6 +18,7 @@ export default function AthleteDashboard() {
   const [msg, setMsg] = useState(null);
   const { logout } = useAuth();
   const navigate = useNavigate();
+  const [editingMeal, setEditingMeal] = useState(null);
 
   const handleLogout = () => {
   logout();
@@ -65,11 +66,41 @@ export default function AthleteDashboard() {
     resource: a,
   }));
 
-const handleRangeChange = (visibleRange) => {
-  const start = Array.isArray(visibleRange) ? visibleRange[0] : visibleRange.start;
-  const end = Array.isArray(visibleRange) ? visibleRange[visibleRange.length - 1] : visibleRange.end;
-  setRange({ start: dayjs(start).toISOString(), end: dayjs(end).toISOString() });
-};
+  const handleRangeChange = (visibleRange) => {
+    const start = Array.isArray(visibleRange) ? visibleRange[0] : visibleRange.start;
+    const end = Array.isArray(visibleRange) ? visibleRange[visibleRange.length - 1] : visibleRange.end;
+    setRange({ start: dayjs(start).toISOString(), end: dayjs(end).toISOString() });
+  };
+
+  const handleUpdateMeal = async (e) => {
+    e.preventDefault();
+    try {
+      await updateMeal(editingMeal._id, {
+        name: editingMeal.meal,
+        calories: editingMeal.calories,
+        time: editingMeal.time,
+        date: new Date(editingMeal.date).toISOString(),
+      });
+      setMsg('Meal updated.');
+      setEditingMeal(null);
+      const { data } = await getMyMeals();
+      setMeals(data);
+    } catch (err) {
+      setMsg(err.response?.data?.error || 'Failed to update meal.');
+    }
+  };
+
+  const handleDeleteMeal = async (id) => {
+    if (!window.confirm('Delete this meal log?')) return;
+    try {
+      await deleteMeal(id);
+      setMsg('Meal deleted.');
+      const { data } = await getMyMeals();
+      setMeals(data);
+    } catch (err) {
+      setMsg(err.response?.data?.error || 'Failed to delete meal.');
+    }
+  };
 
   return (
     <Container className="mt-4">
@@ -133,23 +164,70 @@ const handleRangeChange = (visibleRange) => {
               <strong>{m.meal}</strong> — {m.calories} cal
               <span className="text-muted ms-2">{new Date(m.date).toLocaleDateString()}</span>
             </div>
-            <Badge bg="secondary">{m.time}</Badge>
+            <div className="d-flex gap-2 align-items-center">
+              <Badge bg="secondary">{m.time}</Badge>
+              <Button size="sm" variant="outline-secondary" onClick={() => setEditingMeal({
+                ...m,
+                date: new Date(m.date).toISOString().split('T')[0], // format for the date input
+              })}>
+                Edit
+              </Button>
+              <Button size="sm" variant="outline-danger" onClick={() => handleDeleteMeal(m._id)}>
+                Delete
+              </Button>
+            </div>
           </ListGroup.Item>
         ))}
       </ListGroup>
-      <div style={{ height: 600 }}>
-        <Calendar
-          localizer={localizer}
-          events={events}
-          startAccessor="start"
-          endAccessor="end"
-          onSelectEvent={(event) => setSelectedEvent(event)}
-          onRangeChange={handleRangeChange}
-          eventPropGetter={(event) => ({
-            style: { backgroundColor: event.resource.loggedMinutes ? '#2f8f5b' : '#ff6b4a' },
-          })}
-        />
-      </div>
+
+      <Modal show={!!editingMeal} onHide={() => setEditingMeal(null)}>
+        <Modal.Header closeButton><Modal.Title>Edit Meal</Modal.Title></Modal.Header>
+        <Modal.Body>
+          {editingMeal && (
+            <Form onSubmit={handleUpdateMeal}>
+              <Form.Group className="mb-2">
+                <Form.Label>Meal name</Form.Label>
+                <Form.Control
+                  value={editingMeal.meal}
+                  onChange={(e) => setEditingMeal({ ...editingMeal, meal: e.target.value })}
+                  required
+                />
+              </Form.Group>
+              <Form.Group className="mb-2">
+                <Form.Label>Calories</Form.Label>
+                <Form.Control
+                  type="number"
+                  value={editingMeal.calories}
+                  onChange={(e) => setEditingMeal({ ...editingMeal, calories: e.target.value })}
+                  required
+                />
+              </Form.Group>
+              <Form.Group className="mb-2">
+                <Form.Label>Meal type</Form.Label>
+                <Form.Select
+                  value={editingMeal.time}
+                  onChange={(e) => setEditingMeal({ ...editingMeal, time: e.target.value })}
+                >
+                  <option>Breakfast</option>
+                  <option>Lunch</option>
+                  <option>Dinner</option>
+                  <option>Snack</option>
+                </Form.Select>
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Date</Form.Label>
+                <Form.Control
+                  type="date"
+                  value={editingMeal.date}
+                  onChange={(e) => setEditingMeal({ ...editingMeal, date: e.target.value })}
+                  required
+                />
+              </Form.Group>
+              <Button type="submit" size="sm">Save Changes</Button>
+            </Form>
+          )}
+        </Modal.Body>
+      </Modal>
       <Button variant="outline-secondary" size="sm" onClick={handleLogout}>Sign Out</Button>
     </Container>
   );

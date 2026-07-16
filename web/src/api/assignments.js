@@ -22,8 +22,10 @@ export const getMyAssignments = (range) =>
 
 export const getExercises = () => 
   client.get('/exercises');
+
 export const getTeamMembers = () => 
   client.get('/team/members');
+
 export const getAssignmentsForMember = (memberId) =>
   client.get(`/assignments/member/${memberId}`);
 
@@ -34,3 +36,15 @@ export const logMeal = ({ name, calories, time, date }) =>
   client.post('/meal-log', { meal: name, calories: Number(calories), time, date });
 
 export const getMyMeals = () => client.get('/meal-log');
+
+export const updateExercise = (id, { name, description, targetDurationMinutes }) =>
+  client.put(`/exercises/${id}`, { name, description, targetDuration: targetDurationMinutes });
+
+export const deleteExercise = (id) => client.delete(`/exercises/${id}`);
+
+export const removeTeamMember = (memberId) => client.delete(`/team/members/${memberId}`);
+
+export const updateMeal = (id, { name, calories, time, date }) =>
+  client.put(`/meal-log/${id}`, { meal: name, calories: Number(calories), time, date });
+
+export const deleteMeal = (id) => client.delete(`/meal-log/${id}`);
