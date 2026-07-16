@@ -18,17 +18,25 @@ export default function CoachDashboard() {
   const { logout } = useAuth();
   const [editingExercise, setEditingExercise] = useState(null);
   const [editingDueDate, setEditingDueDate] = useState({});
-  const [games, setGames] = useState({ title: '', location: '', date: '' });
+  const [games, setGame] = useState({ title: '', location: '', date: '' });
   
   const handleLogout = () => {
   logout();
   navigate('/login');
   };
 
-  const loadDropdownData = () => {
-    getExercises().then(({ data }) => setExercises(data));
-    getTeamMembers().then(({ data }) => setTeamMembers(data));
-  }
+  const loadDropdownData = async () => {
+    try {
+      const exercisesResponse = await getExercises();
+      const membersResponse = await getTeamMembers();
+
+      setExercises(exercisesResponse.data);
+      setTeamMembers(membersResponse.data);
+    } catch (err) {
+      console.error(err);
+      setMsg(err.response?.data?.error || "Failed loading dashboard data");
+    }
+  };
 
   useEffect(loadDropdownData, []);
 
@@ -96,7 +104,7 @@ export default function CoachDashboard() {
       await updateExercise(editingExercise._id, {
         name: editingExercise.name,
         description: editingExercise.description,
-        targetDurationMinutes: editingExercise.targetDuration,
+        targetDurationMinutes: editingExercise.targetDurationMinutes,
       });
       setMsg('Exercise updated.');
       setEditingExercise(null);
@@ -213,7 +221,7 @@ export default function CoachDashboard() {
             <ListGroup.Item key={ex._id} className="d-flex justify-content-between align-items-center">
               <div>
                 <strong>{ex.name}</strong>
-                <span className="text-muted ms-2">{ex.targetDuration} min</span>
+                <span className="text-muted ms-2">{ex.targetDurationMinutes} min</span>
               </div>
               <div className="d-flex gap-2">
                 <Button size="sm" variant="outline-secondary" onClick={() => setEditingExercise({ ...ex })}>
@@ -253,8 +261,8 @@ export default function CoachDashboard() {
                   <Form.Label>Target Duration (minutes)</Form.Label>
                   <Form.Control
                     type="number"
-                    value={editingExercise.targetDuration}
-                    onChange={(e) => setEditingExercise({ ...editingExercise, targetDuration: Number(e.target.value) })}
+                    value={editingExercise.targetDurationMinutes}
+                    onChange={(e) => setEditingExercise({ ...editingExercise, targetDurationMinutes: Number(e.target.value) })}
                     required
                   />
                 </Form.Group>
@@ -290,7 +298,6 @@ export default function CoachDashboard() {
               value={assignment.dueDate}
               onChange={(e) => setAssignment({ ...assignment, dueDate: e.target.value })} required
             />
-            <Button type="submit" size="sm">Assign</Button>
             <div className="d-flex gap-2">
               <Button type="submit" size="sm">Assign to Selected Athlete</Button>
               <Button type="button" size="sm" variant="outline-secondary" onClick={handleBulkAssign}>
