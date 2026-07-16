@@ -18,7 +18,7 @@ export default function CoachDashboard() {
   const { logout } = useAuth();
   const [editingExercise, setEditingExercise] = useState(null);
   const [editingDueDate, setEditingDueDate] = useState({});
-  const [games, setGame] = useState({ title: '', location: '', date: '' });
+  const [game, setGame] = useState({ title: '', location: '', date: '' });
   
   const handleLogout = () => {
   logout();

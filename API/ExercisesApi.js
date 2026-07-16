@@ -26,7 +26,8 @@ app.post('/api/exercises', verifyJWT, requireRole("Coach"), async (req, res) =>
         const exercise = await Exercise.create({
             name,
             description,
-            targetDuration
+            targetDuration,
+            coach: req.user.userId
         });
 
         ret =
@@ -113,7 +114,7 @@ app.get('/api/exercises',
 {
     try
     {
-        const exercises = await Exercise.find();
+        const exercises = await Exercise.find({ coach: req.user.userId });
 
         return res.status(200).json(exercises);
     }
@@ -175,6 +176,13 @@ app.put('/api/exercises/:id',
             { name, description, targetDuration },
             { new: true, runValidators: true }
         );
+
+        if (!exercise.coach.equals(req.user.userId))
+        {
+            return res.status(403).json({
+                error: "Exercise belongs to different coach."
+            });
+        }
 
         if (!exercise)
         {

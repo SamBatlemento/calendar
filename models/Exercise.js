@@ -20,6 +20,14 @@ const ExerciseSchema = new Schema(
     {
         type: Number,
         required: true
+    },
+
+    coach:
+    {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+        required: true,
+        index: true
     }
 },
 {
