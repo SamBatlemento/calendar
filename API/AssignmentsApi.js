@@ -77,6 +77,67 @@ app.post('/api/assignments', verifyJWT, requireRole("Coach"), async (req, res) =
     }
 });
 
+// =========================
+// Assign Exercise to Entire Team (Coach)
+// =========================
+app.post('/api/assignments/team',
+    verifyJWT,
+    requireRole("Coach"),
+    async (req, res) =>
+{
+    const { exerciseId, dueDate } = req.body;
+
+    try
+    {
+        // Validate input
+        if (!exerciseId || !dueDate)
+        {
+            return res.status(400).json({
+                error: "Exercise ID and due date are required."
+            });
+        }
+
+        // Make sure the exercise exists
+        const exercise = await Exercise.findById(exerciseId);
+
+        if (!exercise)
+        {
+            return res.status(404).json({
+                error: "Exercise not found."
+            });
+        }
+
+        // Get the coach's team
+        const team = await Team.findOne({ coach: req.user.userId });
+
+        if (!team || team.members.length === 0)
+        {
+            return res.status(404).json({
+                error: "You have no athletes on your team."
+            });
+        }
+
+        // Create one assignment per team member
+        const assignments = await Assignment.insertMany(
+            team.members.map(memberId => ({
+                exercise: exerciseId,
+                member: memberId,
+                dueDate
+            }))
+        );
+
+        return res.status(201).json({
+            message: `Assignment created for ${assignments.length} athlete(s).`,
+            assignmentIds: assignments.map(a => a._id)
+        });
+    }
+    catch (e)
+    {
+        console.error(e);
+        return res.status(500).json({ error: "Internal server error" });
+    }
+});
+
 app.get('/api/my-assignments', verifyJWT, requireRole("Athlete"), async (req, res) =>
 {
     const memberId = req.user.userId;
