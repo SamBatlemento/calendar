@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { Container, ListGroup, Form, Button, Tabs, Tab, Alert, Badge } from 'react-bootstrap';
-import { getMyAssignments, logExerciseTime, logMeal, getMyMeals, updateExercise, deleteExercise } from '../api/assignments';
+import { Container, ListGroup, Form, Button, Tabs, Tab, Alert, Badge, Modal } from 'react-bootstrap';
+import { getMyAssignments, logExerciseTime, logMeal, getMyMeals, updateMeal, deleteMeal } from '../api/assignments';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Calendar, dayjsLocalizer } from 'react-big-calendar';
