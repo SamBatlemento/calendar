@@ -53,11 +53,6 @@ export const updateMeal = (id, { name, calories, time, date }) =>
 
 export const deleteMeal = (id) => client.delete(`/meal-log/${id}`);
 
-export const updateMeal = (id, { name, calories, time, date }) =>
-  client.put(`/meal-log/${id}`, { meal: name, calories: Number(calories), time, date });
-
-export const deleteMeal = (id) => client.delete(`/meal-log/${id}`);
-
 export const bulkAssignExercise = ({ exerciseId, dueDate }) =>
   client.post('/assignments/team', { exerciseId, dueDate });
 
