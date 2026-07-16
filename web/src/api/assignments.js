@@ -59,7 +59,7 @@ export const bulkAssignExercise = ({ exerciseId, dueDate }) =>
 export const createGame = ({ title, location, date }) =>
   client.post('/games', { title, location, date });
 
-export const getGames = ({ start, end }) =>
+export const getGames = ({ start, end } = {}) =>
   client.get('/games', { params: { start, end } });
 
 export const updateGame = (id, { title, location, date }) =>

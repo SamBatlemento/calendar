@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Container, Form, Button, Row, Col, Alert, ListGroup, Badge, Modal } from 'react-bootstrap';
 import { createExercise, assignExercise, addTeamAthlete, getExercises, getTeamMembers, 
   getAssignmentsForMember, updateExercise, deleteExercise, removeTeamMember, updateAssignmentDueDate, 
-  deleteAssignment, bulkAssignExercise, createGame, getGames, updateGame, deleteGame } from '../api/assignments';
+  deleteAssignment, bulkAssignExercise, createGame } from '../api/assignments';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -38,7 +38,9 @@ export default function CoachDashboard() {
     }
   };
 
-  useEffect(loadDropdownData, []);
+  useEffect(() => {
+    loadDropdownData();
+  }, []);
 
   const handleCreateExercise = async (e) => {
     e.preventDefault();
@@ -78,12 +80,16 @@ export default function CoachDashboard() {
   };
 
   const viewProgress = async (member) => {
+    try {
     if (selectedProgressMember?.member._id === member._id) {
       setSelectedProgressMember(null);
       return;
     }
     const { data } = await getAssignmentsForMember(member._id);
     setSelectedProgressMember({ member, assignments: data });
+    } catch(err) {
+    setMsg(err.response?.data?.error || "Failed loading progress");
+    }
   };
 
   const handleRemoveAthlete = async (memberId) => {
@@ -172,7 +178,7 @@ export default function CoachDashboard() {
   const handleCreateGame = async (e) => {
     e.preventDefault();
     try {
-      await createGame(game);
+      await createGame(games);
       setMsg('Game date added.');
       setGame({ title: '', location: '', date: '' });
     } catch (err) {
@@ -221,7 +227,7 @@ export default function CoachDashboard() {
             <ListGroup.Item key={ex._id} className="d-flex justify-content-between align-items-center">
               <div>
                 <strong>{ex.name}</strong>
-                <span className="text-muted ms-2">{ex.targetDurationMinutes} min</span>
+                <span className="text-muted ms-2">{ex.targetDuration} min</span>
               </div>
               <div className="d-flex gap-2">
                 <Button size="sm" variant="outline-secondary" onClick={() => setEditingExercise({ ...ex })}>
@@ -339,7 +345,7 @@ export default function CoachDashboard() {
             {selectedProgressMember.assignments.map((a) => (
               <ListGroup.Item key={a._id} className="d-flex justify-content-between align-items-center">
                 <div>
-                  {a.exercise.name} — due {new Date(a.dueDate).toLocaleDateString()}
+                  {a.exercise?.name || "Unknown Exercise"} — due {new Date(a.dueDate).toLocaleDateString()}
                 </div>
                 <div className="d-flex gap-2 align-items-center">
                   <Badge bg={a.completed ? 'success' : 'secondary'}>
@@ -372,18 +378,18 @@ export default function CoachDashboard() {
         <Form onSubmit={handleCreateGame}>
           <Form.Control
             className="mb-2" placeholder="e.g. vs. Riverside High"
-            value={game.title}
-            onChange={(e) => setGame({ ...game, title: e.target.value })} required
+            value={games.title}
+            onChange={(e) => setGames({ ...games, title: e.target.value })} required
           />
           <Form.Control
             className="mb-2" placeholder="Location (optional)"
-            value={game.location}
-            onChange={(e) => setGame({ ...game, location: e.target.value })}
+            value={games.location}
+            onChange={(e) => setGames({ ...games, location: e.target.value })}
           />
           <Form.Control
             className="mb-2" type="date"
-            value={game.date}
-            onChange={(e) => setGame({ ...game, date: e.target.value })} required
+            value={games.date}
+            onChange={(e) => setGames({ ...games, date: e.target.value })} required
           />
           <Button type="submit" size="sm">Add Game</Button>
         </Form>
