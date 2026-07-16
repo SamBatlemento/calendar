@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Container, Form, Button, Row, Col, Alert, ListGroup, Badge, Modal } from 'react-bootstrap';
-import { createExercise, assignExercise, addTeamAthlete, getExercises, getTeamMembers, getAssignmentsForMember, updateExercise, deleteExercise, removeTeamMember } from '../api/assignments';
+import { createExercise, assignExercise, addTeamAthlete, getExercises, getTeamMembers, 
+  getAssignmentsForMember, updateExercise, deleteExercise, removeTeamMember, updateAssignmentDueDate, 
+  deleteAssignment, bulkAssignExercise, createGame, getGames, updateGame, deleteGame } from '../api/assignments';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
@@ -15,6 +17,8 @@ export default function CoachDashboard() {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const [editingExercise, setEditingExercise] = useState(null);
+  const [editingDueDate, setEditingDueDate] = useState({});
+  const [games, setGames] = useState({ title: '', location: '', date: '' });
   
   const handleLogout = () => {
   logout();
@@ -109,6 +113,62 @@ export default function CoachDashboard() {
       loadDropdownData();
     } catch (err) {
       setMsg(err.response?.data?.error || 'Failed to delete exercise.');
+    }
+  };
+
+  const refreshProgress = async () => {
+    if (!selectedProgressMember) return;
+    const { data } = await getAssignmentsForMember(selectedProgressMember.member._id);
+    setSelectedProgressMember({ ...selectedProgressMember, assignments: data });
+  };
+
+  const handleUpdateDueDate = async (assignmentId) => {
+    try {
+      await updateAssignmentDueDate(assignmentId, editingDueDate[assignmentId]);
+      setMsg('Due date updated.');
+      setEditingDueDate({ ...editingDueDate, [assignmentId]: undefined });
+      refreshProgress();
+    } catch (err) {
+      setMsg(err.response?.data?.error || 'Failed to update due date.');
+    }
+  };
+
+  const handleDeleteAssignment = async (assignmentId) => {
+    if (!window.confirm('Delete this assignment? This also removes any logged time for it.')) return;
+    try {
+      await deleteAssignment(assignmentId);
+      setMsg('Assignment deleted.');
+      refreshProgress();
+    } catch (err) {
+      setMsg(err.response?.data?.error || 'Failed to delete assignment.');
+    }
+  };
+
+  const handleBulkAssign = async () => {
+    if (!assignment.exerciseId || !assignment.dueDate) {
+      setMsg('Select an exercise and due date first.');
+      return;
+    }
+    if (!window.confirm('Assign this exercise to your entire team?')) return;
+    try {
+      const { data } = await bulkAssignExercise({
+        exerciseId: assignment.exerciseId,
+        dueDate: assignment.dueDate,
+      });
+      setMsg(data.message);
+    } catch (err) {
+      setMsg(err.response?.data?.error || 'Failed to bulk assign.');
+    }
+  };
+
+  const handleCreateGame = async (e) => {
+    e.preventDefault();
+    try {
+      await createGame(game);
+      setMsg('Game date added.');
+      setGame({ title: '', location: '', date: '' });
+    } catch (err) {
+      setMsg(err.response?.data?.error || 'Failed to add game date.');
     }
   };
 
@@ -231,6 +291,12 @@ export default function CoachDashboard() {
               onChange={(e) => setAssignment({ ...assignment, dueDate: e.target.value })} required
             />
             <Button type="submit" size="sm">Assign</Button>
+            <div className="d-flex gap-2">
+              <Button type="submit" size="sm">Assign to Selected Athlete</Button>
+              <Button type="button" size="sm" variant="outline-secondary" onClick={handleBulkAssign}>
+                Assign to Entire Team
+              </Button>
+            </div>
           </Form>
         </Col>
       </Row>
@@ -256,19 +322,65 @@ export default function CoachDashboard() {
 
       {selectedProgressMember && (
         <div>
+          <div className="d-flex justify-content-between align-items-center">
             <h6>{selectedProgressMember.member.firstName}'s Assignments</h6>
+            <Button size="sm" variant="outline-secondary" onClick={() => setSelectedProgressMember(null)}>
+              Close
+            </Button>
+          </div>
           <ListGroup>
             {selectedProgressMember.assignments.map((a) => (
               <ListGroup.Item key={a._id} className="d-flex justify-content-between align-items-center">
-                {a.exercise.name} — due {new Date(a.dueDate).toLocaleDateString()}
-                <Badge bg={a.completed ? 'success' : 'secondary'}>
-                  {a.completed ? 'Completed' : 'Not completed'}
-                </Badge>
+                <div>
+                  {a.exercise.name} — due {new Date(a.dueDate).toLocaleDateString()}
+                </div>
+                <div className="d-flex gap-2 align-items-center">
+                  <Badge bg={a.completed ? 'success' : 'secondary'}>
+                    {a.completed ? 'Completed' : 'Not completed'}
+                  </Badge>
+                  {!a.completed && (
+                    <>
+                      <Form.Control
+                        size="sm" type="date" style={{ width: 150 }}
+                        value={editingDueDate[a._id] ?? ''}
+                        onChange={(e) => setEditingDueDate({ ...editingDueDate, [a._id]: e.target.value })}
+                      />
+                      <Button size="sm" variant="outline-secondary" onClick={() => handleUpdateDueDate(a._id)}>
+                        Update
+                      </Button>
+                    </>
+                  )}
+                  <Button size="sm" variant="outline-danger" onClick={() => handleDeleteAssignment(a._id)}>
+                    Delete
+                  </Button>
+                </div>
               </ListGroup.Item>
             ))}
           </ListGroup>
         </div>
       )}
+
+      <Col md={4}>
+        <h5>Add Game Date</h5>
+        <Form onSubmit={handleCreateGame}>
+          <Form.Control
+            className="mb-2" placeholder="e.g. vs. Riverside High"
+            value={game.title}
+            onChange={(e) => setGame({ ...game, title: e.target.value })} required
+          />
+          <Form.Control
+            className="mb-2" placeholder="Location (optional)"
+            value={game.location}
+            onChange={(e) => setGame({ ...game, location: e.target.value })}
+          />
+          <Form.Control
+            className="mb-2" type="date"
+            value={game.date}
+            onChange={(e) => setGame({ ...game, date: e.target.value })} required
+          />
+          <Button type="submit" size="sm">Add Game</Button>
+        </Form>
+      </Col>
 
       <Button variant="outline-secondary" size="sm" onClick={handleLogout}>Sign Out</Button>
     </Container>

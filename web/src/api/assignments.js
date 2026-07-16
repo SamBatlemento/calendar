@@ -44,7 +44,30 @@ export const deleteExercise = (id) => client.delete(`/exercises/${id}`);
 
 export const removeTeamMember = (memberId) => client.delete(`/team/members/${memberId}`);
 
+export const updateAssignmentDueDate = (id, dueDate) => client.put(`/assignments/${id}`, { dueDate });
+
+export const deleteAssignment = (id) => client.delete(`/assignments/${id}`);
+
 export const updateMeal = (id, { name, calories, time, date }) =>
   client.put(`/meal-log/${id}`, { meal: name, calories: Number(calories), time, date });
 
 export const deleteMeal = (id) => client.delete(`/meal-log/${id}`);
+
+export const updateMeal = (id, { name, calories, time, date }) =>
+  client.put(`/meal-log/${id}`, { meal: name, calories: Number(calories), time, date });
+
+export const deleteMeal = (id) => client.delete(`/meal-log/${id}`);
+
+export const bulkAssignExercise = ({ exerciseId, dueDate }) =>
+  client.post('/assignments/team', { exerciseId, dueDate });
+
+export const createGame = ({ title, location, date }) =>
+  client.post('/games', { title, location, date });
+
+export const getGames = ({ start, end }) =>
+  client.get('/games', { params: { start, end } });
+
+export const updateGame = (id, { title, location, date }) =>
+  client.put(`/games/${id}`, { title, location, date });
+
+export const deleteGame = (id) => client.delete(`/games/${id}`);

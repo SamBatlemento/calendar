@@ -201,6 +201,14 @@ app.get('/api/my-assignments', verifyJWT, requireRole("Athlete"), async (req, re
                 $lte: end
             };
         }
+        else if (req.query.start && req.query.end)
+        {
+            query.dueDate =
+            {
+                $gte: new Date(req.query.start),
+                $lte: new Date(req.query.end)
+            };
+        }
 
         const assignments = await Assignment.find(query)
             .populate("exercise")
