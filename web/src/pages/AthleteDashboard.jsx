@@ -1,47 +1,92 @@
 import { useState, useEffect } from 'react';
-import { Container, ListGroup, Form, Button, Tabs, Tab, Alert, Badge, Modal } from 'react-bootstrap';
-import { getMyAssignments, logExerciseTime, logMeal, getMyMeals, updateMeal, deleteMeal } from '../api/assignments';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { Container, Form, Button, ListGroup, Alert, Badge, Modal } from 'react-bootstrap';
 import { Calendar, dayjsLocalizer } from 'react-big-calendar';
 import dayjs from 'dayjs';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
+import {
+  getMyAssignments, logExerciseTime, logMeal, getMyMeals,
+  updateMeal, deleteMeal, getGames,
+} from '../api/assignments';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 const localizer = dayjsLocalizer(dayjs);
 
 export default function AthleteDashboard() {
-  const [range, setRange] = useState({start: dayjs().startOf('month').toISOString(), end: dayjs().endOf('month').toISOString(),});
-  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [range, setRange] = useState({
+    start: dayjs().startOf('month').toISOString(),
+    end: dayjs().endOf('month').toISOString(),
+  });
   const [assignments, setAssignments] = useState([]);
-  const [meal, setMeal] = useState({ name: '', calories: '', time: 'Breakfast', date: '' });
+  const [games, setGames] = useState([]);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [minutes, setMinutes] = useState('');
+
   const [meals, setMeals] = useState([]);
+  const [meal, setMeal] = useState({ name: '', calories: '', time: 'Breakfast', date: '' });
+  const [editingMeal, setEditingMeal] = useState(null);
+
   const [msg, setMsg] = useState(null);
   const { logout } = useAuth();
   const navigate = useNavigate();
-  const [editingMeal, setEditingMeal] = useState(null);
 
   const handleLogout = () => {
-  logout();
-  navigate('/login');
+    logout();
+    navigate('/login');
   };
 
   useEffect(() => {
-    getMyAssignments(range).then(({ data }) => setAssignments(data))
-      .catch((err) => setMsg(err.response?.data?.error || 'Failed to load assignments.'));
+    let cancelled = false;
+    getMyAssignments(range)
+      .then(({ data }) => { if (!cancelled) setAssignments(data); })
+      .catch((err) => { if (!cancelled) setMsg(err.response?.data?.error || 'Failed to load assignments.'); });
+    getGames(range)
+      .then(({ data }) => { if (!cancelled) setGames(data); })
+      .catch((err) => { if (!cancelled) setMsg(err.response?.data?.error || 'Failed to load games.'); });
+    return () => { cancelled = true; };
   }, [range]);
 
   useEffect(() => {
     getMyMeals().then(({ data }) => setMeals(data));
-    }, []);
+  }, []);
 
-  const handleLogTime = async (assignmentId, minutes) => {
-    try{
-      await logExerciseTime(assignmentId, minutes);
+  const handleRangeChange = (visibleRange) => {
+    const start = Array.isArray(visibleRange) ? visibleRange[0] : visibleRange.start;
+    const end = Array.isArray(visibleRange) ? visibleRange[visibleRange.length - 1] : visibleRange.end;
+    setRange({ start: dayjs(start).toISOString(), end: dayjs(end).toISOString() });
+  };
+
+  const exerciseEvents = assignments.map((a) => ({
+    id: a._id,
+    type: 'exercise',
+    title: a.loggedMinutes ? `✓ ${a.exercise.name}` : a.exercise.name,
+    start: new Date(a.dueDate),
+    end: new Date(a.dueDate),
+    allDay: true,
+    resource: a,
+  }));
+
+  const gameEvents = games.map((g) => ({
+    id: g._id,
+    type: 'game',
+    title: `🏆 ${g.title}`,
+    start: new Date(g.date),
+    end: new Date(g.date),
+    allDay: true,
+    resource: g,
+  }));
+
+  const events = [...exerciseEvents, ...gameEvents];
+
+  const handleLogTime = async () => {
+    try {
+      await logExerciseTime(selectedEvent.resource._id, Number(minutes));
       setMsg('Time logged.');
+      setSelectedEvent(null);
+      setMinutes('');
       const { data } = await getMyAssignments(range);
       setAssignments(data);
-    }catch (err)
-    {
+    } catch (err) {
       setMsg(err.response?.data?.error || 'Failed to log time.');
     }
   };
@@ -55,21 +100,6 @@ export default function AthleteDashboard() {
     setMeal({ name: '', calories: '', time: 'Breakfast', date: '' });
     const { data } = await getMyMeals();
     setMeals(data);
-  };
-
-  const events = assignments.map((a) => ({
-    id: a._id,
-    title: a.loggedMinutes ? `✓ ${a.exercise.name}` : a.exercise.name,
-    start: new Date(a.dueDate),
-    end: new Date(a.dueDate),
-    allDay: true,
-    resource: a,
-  }));
-
-  const handleRangeChange = (visibleRange) => {
-    const start = Array.isArray(visibleRange) ? visibleRange[0] : visibleRange.start;
-    const end = Array.isArray(visibleRange) ? visibleRange[visibleRange.length - 1] : visibleRange.end;
-    setRange({ start: dayjs(start).toISOString(), end: dayjs(end).toISOString() });
   };
 
   const handleUpdateMeal = async (e) => {
@@ -106,29 +136,55 @@ export default function AthleteDashboard() {
     <Container className="mt-4">
       <h2>My Calendar</h2>
       {msg && <Alert variant="info" onClose={() => setMsg(null)} dismissible>{msg}</Alert>}
-    
-      <Tabs activeKey={range} onSelect={(k) => setRange(k)} className="mb-3">
-        <Tab eventKey="today" title="Today" />
-        <Tab eventKey="week" title="This Week" />
-      </Tabs>
 
-      <ListGroup className="mb-4">
-        {assignments.length === 0 && (
-          <ListGroup.Item className="text-muted">Nothing assigned for this range.</ListGroup.Item>
-        )}
-        {assignments.map((a) => (
-          <ListGroup.Item key={a._id} className="d-flex justify-content-between align-items-center">
+      <div style={{ height: 600 }} className="mb-4">
+        <Calendar
+          localizer={localizer}
+          events={events}
+          startAccessor="start"
+          endAccessor="end"
+          onSelectEvent={(event) => setSelectedEvent(event)}
+          onRangeChange={handleRangeChange}
+          eventPropGetter={(event) => ({
+            style: {
+              backgroundColor: event.type === 'game'
+                ? '#1f4d3d'
+                : event.resource.loggedMinutes ? '#2f8f5b' : '#ff6b4a',
+            },
+          })}
+        />
+      </div>
+
+      <Modal show={!!selectedEvent} onHide={() => setSelectedEvent(null)}>
+        <Modal.Header closeButton>
+          <Modal.Title>{selectedEvent?.title}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {selectedEvent?.type === 'game' ? (
             <div>
-              <strong>{a.exercise.name}</strong> — due {new Date(a.dueDate).toLocaleDateString()}
-              {a.loggedMinutes && <span className="text-success ms-2">✓ {a.loggedMinutes} min logged</span>}
+              {selectedEvent.resource.location && <p>Location: {selectedEvent.resource.location}</p>}
+              <p>{new Date(selectedEvent.resource.date).toLocaleDateString()}</p>
             </div>
-            {!a.loggedMinutes && (
-              <LogTimeInline onLog={(minutes) => handleLogTime(a._id, minutes)} />
-            )}
-          </ListGroup.Item>
-        ))}
-      </ListGroup>
+          ) : selectedEvent?.resource.loggedMinutes ? (
+            <p>Logged: {selectedEvent.resource.loggedMinutes} minutes</p>
+          ) : (
+            <Form onSubmit={(e) => { e.preventDefault(); handleLogTime(); }}>
+              <Form.Group className="mb-3">
+                <Form.Label>Minutes completed</Form.Label>
+                <Form.Control
+                  type="number"
+                  value={minutes}
+                  onChange={(e) => setMinutes(e.target.value)}
+                  required
+                />
+              </Form.Group>
+              <Button type="submit">Log Time</Button>
+            </Form>
+          )}
+        </Modal.Body>
+      </Modal>
 
+      <h5>Log a Meal</h5>
       <Form onSubmit={handleLogMeal} className="d-flex gap-2 flex-wrap">
         <Form.Control
           placeholder="Meal name" value={meal.name}
@@ -168,7 +224,7 @@ export default function AthleteDashboard() {
               <Badge bg="secondary">{m.time}</Badge>
               <Button size="sm" variant="outline-secondary" onClick={() => setEditingMeal({
                 ...m,
-                date: new Date(m.date).toISOString().split('T')[0], // format for the date input
+                date: new Date(m.date).toISOString().split('T')[0],
               })}>
                 Edit
               </Button>
@@ -228,23 +284,8 @@ export default function AthleteDashboard() {
           )}
         </Modal.Body>
       </Modal>
+
       <Button variant="outline-secondary" size="sm" onClick={handleLogout}>Sign Out</Button>
     </Container>
-  );
-}
-
-function LogTimeInline({ onLog }) {
-  const [minutes, setMinutes] = useState('');
-  return (
-    <Form
-      className="d-flex gap-2"
-      onSubmit={(e) => { e.preventDefault(); onLog(Number(minutes)); }}
-    >
-      <Form.Control
-        size="sm" type="number" placeholder="min" style={{ width: 70 }}
-        value={minutes} onChange={(e) => setMinutes(e.target.value)} required
-      />
-      <Button size="sm" type="submit">Log</Button>
-    </Form>
   );
 }
