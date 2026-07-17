@@ -338,9 +338,6 @@ export default function CoachDashboard() {
         <div>
           <div className="d-flex justify-content-between align-items-center">
             <h6>{selectedProgressMember.member.firstName}'s Assignments</h6>
-            <Button size="sm" variant="outline-secondary" onClick={() => setSelectedProgressMember(null)}>
-              Close
-            </Button>
           </div>
           <ListGroup>
             {selectedProgressMember.assignments.map((a) => (
