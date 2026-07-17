@@ -71,8 +71,8 @@ export default function AthleteDashboard() {
     id: g._id,
     type: 'game',
     title: `🏆 ${g.title}`,
-    start: new Date(g.date),
-    end: new Date(g.date),
+    start: new Date(date),
+    end: new Date(date),
     allDay: true,
     resource: g,
   }));
