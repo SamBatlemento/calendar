@@ -23,9 +23,9 @@ export default function AthleteDashboard() {
   const [minutes, setMinutes] = useState('');
 
   const [meals, setMeals] = useState([]);
-  const [meal, setMeal] = useState({ name: '', calories: '', time: 'Breakfast', date: mealDate });
   const [editingMeal, setEditingMeal] = useState(null);
   const [mealDate, setMealDate] = useState(dayjs().format('YYYY-MM-DD'));
+  const [meal, setMeal] = useState({ name: '', calories: '', time: 'Breakfast', date: mealDate });
 
   const [msg, setMsg] = useState(null);
   const { logout } = useAuth();
