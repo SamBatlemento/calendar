@@ -220,6 +220,42 @@ export default function CoachDashboard() {
           </Form>
         </Col>
 
+        <Col md={4}>
+          <h5>Assign Exercise</h5>
+          <Form onSubmit={handleAssign}>
+            <Form.Select
+              className="mb-2" value={assignment.exerciseId}
+              onChange={(e) => setAssignment({ ...assignment, exerciseId: e.target.value })} required
+            >
+              <option value="">Select exercise...</option>
+              {exercises.map((ex) => (
+                <option key={ex._id} value={ex._id}>{ex.name}</option>
+              ))}
+            </Form.Select>
+            <Form.Select
+              className="mb-2" value={assignment.athleteId}
+              onChange={(e) => setAssignment({ ...assignment, athleteId: e.target.value })} required
+            >
+              <option value="">Select athlete...</option>
+              {teamMembers.map((m) => (
+                <option key={m._id} value={m._id}>{m.firstName} {m.lastName}</option>
+              ))}
+            </Form.Select>
+            <Form.Control
+              className="mb-2" type="date"
+              value={assignment.dueDate}
+              onChange={(e) => setAssignment({ ...assignment, dueDate: e.target.value })} required
+            />
+            <div className="d-flex gap-2">
+              <Button type="submit" size="sm">Assign to Selected Athlete</Button>
+              <Button type="button" size="sm" variant="outline-secondary" onClick={handleBulkAssign}>
+                Assign to Entire Team
+              </Button>
+            </div>
+          </Form>
+        </Col>
+      </Row>
+
         <hr className="my-4" />
         <h5>Manage Exercises</h5>
         <ListGroup className="mb-3">
@@ -230,7 +266,8 @@ export default function CoachDashboard() {
                 <span className="text-muted ms-2">{ex.targetDuration} min</span>
               </div>
               <div className="d-flex gap-2">
-                <Button size="sm" variant="outline-secondary" onClick={() => setEditingExercise({ ...ex })}>
+                <Button size="sm" variant="outline-secondary" onClick={() => 
+                  setEditingExercise({ ...ex, targetDurationMinutes: ex.targetDuration })}>
                   Edit
                 </Button>
                 <Button size="sm" variant="outline-danger" onClick={() => handleDeleteExercise(ex._id)}>
@@ -277,42 +314,6 @@ export default function CoachDashboard() {
             )}
           </Modal.Body>
         </Modal>
-
-        <Col md={4}>
-          <h5>Assign Exercise</h5>
-          <Form onSubmit={handleAssign}>
-            <Form.Select
-              className="mb-2" value={assignment.exerciseId}
-              onChange={(e) => setAssignment({ ...assignment, exerciseId: e.target.value })} required
-            >
-              <option value="">Select exercise...</option>
-              {exercises.map((ex) => (
-                <option key={ex._id} value={ex._id}>{ex.name}</option>
-              ))}
-            </Form.Select>
-            <Form.Select
-              className="mb-2" value={assignment.athleteId}
-              onChange={(e) => setAssignment({ ...assignment, athleteId: e.target.value })} required
-            >
-              <option value="">Select athlete...</option>
-              {teamMembers.map((m) => (
-                <option key={m._id} value={m._id}>{m.firstName} {m.lastName}</option>
-              ))}
-            </Form.Select>
-            <Form.Control
-              className="mb-2" type="date"
-              value={assignment.dueDate}
-              onChange={(e) => setAssignment({ ...assignment, dueDate: e.target.value })} required
-            />
-            <div className="d-flex gap-2">
-              <Button type="submit" size="sm">Assign to Selected Athlete</Button>
-              <Button type="button" size="sm" variant="outline-secondary" onClick={handleBulkAssign}>
-                Assign to Entire Team
-              </Button>
-            </div>
-          </Form>
-        </Col>
-      </Row>
 
       <hr className="my-4" />
 
