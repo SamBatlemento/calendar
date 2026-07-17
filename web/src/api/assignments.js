@@ -29,7 +29,7 @@ export const getTeamMembers = () =>
 export const getAssignmentsForMember = (memberId) =>
   client.get(`/assignments/member/${memberId}`);
 
-export const getMyMeals = () => client.get('/meal-log', { params: date ? { date } : {} });
+export const getMyMeals = (date) => client.get('/meal-log', { params: date ? { date } : {} });
 
 export const getGames = ({ start, end } = {}) =>
   client.get('/games', { params: { start, end } });

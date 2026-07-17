@@ -48,7 +48,7 @@ export default function AthleteDashboard() {
   }, [range]);
 
   useEffect(() => {
-    getMyMeals({mealDate }).then(({ data }) => setMeals(data));
+    getMyMeals(mealDate).then(({ data }) => setMeals(data));
   }, [mealDate]);
 
   const handleRangeChange = (visibleRange) => {
