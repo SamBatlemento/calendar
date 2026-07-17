@@ -48,16 +48,24 @@ app.get('/api/meal-log',
 {
     try
     {
-        const mealLogs = await MealLog.find({
-            member: req.user.userId
-        });
+        let query = { member: req.user.userId };
 
+        const { date } = req.query;
+        if (date)
+        {
+            const start = new Date(date);
+            start.setHours(0, 0, 0, 0);
+            const end = new Date(date);
+            end.setHours(23, 59, 59, 999);
+            query.date = { $gte: start, $lte: end };
+        }
+
+        const mealLogs = await MealLog.find(query).sort({ date: 1 });
         return res.status(200).json(mealLogs);
     }
     catch (e)
     {
-        console.error(e);
-        return res.status(500).json({ error: "Internal server error" });
+        return res.status(500).json({ error: e.message });
     }
 });
 

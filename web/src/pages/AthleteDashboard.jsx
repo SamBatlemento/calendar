@@ -23,8 +23,9 @@ export default function AthleteDashboard() {
   const [minutes, setMinutes] = useState('');
 
   const [meals, setMeals] = useState([]);
-  const [meal, setMeal] = useState({ name: '', calories: '', time: 'Breakfast', date: '' });
+  const [meal, setMeal] = useState({ name: '', calories: '', time: 'Breakfast', date: mealDate });
   const [editingMeal, setEditingMeal] = useState(null);
+  const [mealDate, setMealDate] = useState(dayjs().format('YYYY-MM-DD'));
 
   const [msg, setMsg] = useState(null);
   const { logout } = useAuth();
@@ -47,8 +48,8 @@ export default function AthleteDashboard() {
   }, [range]);
 
   useEffect(() => {
-    getMyMeals().then(({ data }) => setMeals(data));
-  }, []);
+    getMyMeals({mealDate }).then(({ data }) => setMeals(data));
+  }, [mealDate]);
 
   const handleRangeChange = (visibleRange) => {
     const start = Array.isArray(visibleRange) ? visibleRange[0] : visibleRange.start;
@@ -105,7 +106,7 @@ export default function AthleteDashboard() {
       date: meal.date ? new Date(meal.date).toISOString() : new Date().toISOString(),
     });
     setMeal({ name: '', calories: '', time: 'Breakfast', date: '' });
-    const { data } = await getMyMeals();
+    const { data } = await getMyMeals(mealDate);
     setMeals(data);
   };
 
@@ -120,7 +121,7 @@ export default function AthleteDashboard() {
       });
       setMsg('Meal updated.');
       setEditingMeal(null);
-      const { data } = await getMyMeals();
+      const { data } = await getMyMeals(mealDate);
       setMeals(data);
     } catch (err) {
       setMsg(err.response?.data?.error || 'Failed to update meal.');
@@ -132,7 +133,7 @@ export default function AthleteDashboard() {
     try {
       await deleteMeal(id);
       setMsg('Meal deleted.');
-      const { data } = await getMyMeals();
+      const { data } = await getMyMeals(mealDate);
       setMeals(data);
     } catch (err) {
       setMsg(err.response?.data?.error || 'Failed to delete meal.');
@@ -235,6 +236,24 @@ export default function AthleteDashboard() {
               />
               <Button type="submit">Log</Button>
             </Form>
+
+            <div className="d-flex align-items-center gap-2 mb-3">
+              <h5 className="mb-0">Meals</h5>
+              <Button size="sm" variant="outline-secondary" onClick={() => setMealDate(dayjs(mealDate).subtract(1, 'day').format('YYYY-MM-DD'))}>
+                ‹
+              </Button>
+              <Form.Control
+                type="date" style={{ maxWidth: 180 }}
+                value={mealDate}
+                onChange={(e) => setMealDate(e.target.value)}
+              />
+              <Button size="sm" variant="outline-secondary" onClick={() => setMealDate(dayjs(mealDate).add(1, 'day').format('YYYY-MM-DD'))}>
+                ›
+              </Button>
+              <Button size="sm" variant="outline-secondary" onClick={() => setMealDate(dayjs().format('YYYY-MM-DD'))}>
+                Today
+              </Button>
+            </div>
 
             <ListGroup>
               {meals.map((m) => (

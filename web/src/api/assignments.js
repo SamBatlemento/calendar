@@ -29,13 +29,16 @@ export const getTeamMembers = () =>
 export const getAssignmentsForMember = (memberId) =>
   client.get(`/assignments/member/${memberId}`);
 
+export const getMyMeals = () => client.get('/meal-log', { params: date ? { date } : {} });
+
+export const getGames = ({ start, end } = {}) =>
+  client.get('/games', { params: { start, end } });
+
 export const logExerciseTime = (assignmentId, minutes) =>
   client.post('/exercise-log', { assignmentId, minutes });
 
 export const logMeal = ({ name, calories, time, date }) =>
   client.post('/meal-log', { meal: name, calories: Number(calories), time, date });
-
-export const getMyMeals = () => client.get('/meal-log');
 
 export const updateExercise = (id, { name, description, targetDurationMinutes }) =>
   client.put(`/exercises/${id}`, { name, description, targetDuration: targetDurationMinutes });
@@ -58,9 +61,6 @@ export const bulkAssignExercise = ({ exerciseId, dueDate }) =>
 
 export const createGame = ({ title, location, date }) =>
   client.post('/games', { title, location, date });
-
-export const getGames = ({ start, end } = {}) =>
-  client.get('/games', { params: { start, end } });
 
 export const updateGame = (id, { title, location, date }) =>
   client.put(`/games/${id}`, { title, location, date });
