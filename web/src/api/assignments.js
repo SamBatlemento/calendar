@@ -17,8 +17,8 @@ export const assignExercise = ({ exerciseId, athleteId, dueDate }) =>
     dueDate,
   });
 
-export const getMyAssignments = (range) =>
-  client.get('/my-assignments', { params: { filter: range } });
+export const getMyAssignments = ({ start, end }) =>
+  client.get('/my-assignments', { params: { start, end } });
 
 export const getExercises = () => 
   client.get('/exercises');
