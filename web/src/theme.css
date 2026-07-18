@@ -254,5 +254,14 @@
 }
 
 .theme-page .rbc-event-content {
+  color: inherit;
+}
+
+.theme-page .rbc-event.rbc-event-allday {
   color: #ffffff;
+}
+
+.theme-page .coral-event,
+.theme-page .coral-event .rbc-event-content {
+  color: #1c1f26 !important;
 }

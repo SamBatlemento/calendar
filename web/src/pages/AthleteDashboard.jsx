@@ -81,8 +81,10 @@ export default function AthleteDashboard() {
   const events = [...exerciseEvents, ...gameEvents];
 
   useEffect(() => {
-    const rows = document.querySelectorAll(".rbc-row-content[role=\"row\"]");
-    rows.forEach((row) => row.removeAttribute("role"));
+    const calendarRoot = document.querySelector('.rbc-month-view');
+    if (calendarRoot) {
+      calendarRoot.querySelectorAll('[role]').forEach((el) => el.removeAttribute('role'));
+    }
   }, [events]);
 
   // Clicking any event scrolls down to and populates the bottom panel, instead of a modal
@@ -173,14 +175,12 @@ export default function AthleteDashboard() {
             onSelectEvent={handleSelectEvent}
             onRangeChange={handleRangeChange}
             eventPropGetter={(event) => {
-              const bg = event.type === 'game'
-                ? '#1f4d3d'
-                : event.resource.loggedMinutes ? '#2f8f5b' : '#ff6b4a';
-              const textColor = event.type !== 'game' && !event.resource.loggedMinutes
-                ? '#1c1f26' // dark text for the coral "not completed" events
-                : '#ffffff'; // white text for forest and green events
+              const isCoral = event.type !== 'game' && !event.resource.loggedMinutes;
               return {
-                style: { backgroundColor: bg, color: textColor },
+                className: isCoral ? 'coral-event' : '',
+                style: {
+                  backgroundColor: event.type === 'game' ? '#1f4d3d' : event.resource.loggedMinutes ? '#2f8f5b' : '#ff6b4a',
+                },
               };
             }}
           />
