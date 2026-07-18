@@ -51,10 +51,6 @@ export default function AthleteDashboard() {
     getMyMeals(mealDate).then(({ data }) => setMeals(data));
   }, [mealDate]);
 
-  useEffect(() => {
-    const rows = document.querySelectorAll('.rbc-row-content[role="row"]');
-    rows.forEach((row) => row.removeAttribute('role'));
-  }, [events]);
 
   const handleRangeChange = (visibleRange) => {
     const start = Array.isArray(visibleRange) ? visibleRange[0] : visibleRange.start;
@@ -83,6 +79,11 @@ export default function AthleteDashboard() {
   }));
 
   const events = [...exerciseEvents, ...gameEvents];
+
+  useEffect(() => {
+    const rows = document.querySelectorAll(".rbc-row-content[role=\"row\"]");
+    rows.forEach((row) => row.removeAttribute("role"));
+  }, [events]);
 
   // Clicking any event scrolls down to and populates the bottom panel, instead of a modal
   const handleSelectEvent = (event) => {
