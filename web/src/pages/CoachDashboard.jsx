@@ -50,6 +50,7 @@ export default function CoachDashboard() {
       await createExercise(exercise);
       setMsg(`Exercise "${exercise.name}" created.`);
       setExercise({ name: '', description: '', targetDurationMinutes: 30});
+      loadDropdownData();
     }catch (err)
     {
       setMsg(err.response?.data?.error || 'Failed to create exercise');
@@ -61,6 +62,10 @@ export default function CoachDashboard() {
     try{
       await assignExercise({...assignment, dueDate: parseLocalDate(assignment.dueDate).toISOString(),});
       setMsg('Assigned.');
+      if (selectedProgressMember?.member._id === assignment.athleteId) 
+      {
+      refreshProgress();
+      }
     }catch (err)
     {
       setMsg(err.response?.data?.error || 'Failed to assign exercise.');
@@ -74,6 +79,7 @@ export default function CoachDashboard() {
       await addTeamAthlete(athleteEmail);
       setMsg(`Added ${athleteEmail} to your team.`);
       setAthleteEmail('');
+      loadDropdownData();
     }catch (err)
     {
       setMsg(err.response?.data?.error || 'Failed to add athlete.');
@@ -171,6 +177,7 @@ export default function CoachDashboard() {
         dueDate: parseLocalDate(assignment.dueDate).toISOString(),
       });
       setMsg(data.message);
+      refreshProgress();
     } catch (err) {
       setMsg(err.response?.data?.error || 'Failed to bulk assign.');
     }
