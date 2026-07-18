@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "Team Calendar",
+    "slug": "team-calendar-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFFFFF"
+    },
+
+    "android": {
+      "package": "com.yourteam.calendarmobile"
+    },
+
+    "ios": {
+      "bundleIdentifier": "com.yourteam.calendarmobile"
+    },
+
+    "extra": {
+      "apiUrl": "https://cop4331-9.com/api",
+      "eas": {
+        "projectId": "2be70fa5-68e8-415b-9355-afb8cc880b1a"
+      }
+    }
+  }
+}
