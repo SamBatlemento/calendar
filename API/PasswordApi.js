@@ -95,6 +95,15 @@ app.post('/api/reset-password', async (req, res) =>
             });
         }
 
+        // Block reusing the current password
+        const isSamePassword = await bcrypt.compare(password, user.password);
+        if (isSamePassword)
+        {
+            return res.status(400).json({
+                error: "New password must be different from your current password."
+            });
+        }
+
         // Hash the new password
         const hashedPassword = await bcrypt.hash(password, 10);
 

@@ -5,6 +5,7 @@ import { createExercise, assignExercise, addTeamAthlete, getExercises, getTeamMe
   deleteAssignment, bulkAssignExercise, createGame } from '../api/assignments';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import dayjs from 'dayjs';
 
 export default function CoachDashboard() {
   const [exercise, setExercise] = useState({ name: '', description: '', targetDurationMinutes: 30 });
@@ -58,7 +59,7 @@ export default function CoachDashboard() {
   const handleAssign = async (e) => {
     e.preventDefault();
     try{
-      await assignExercise(assignment);
+      await assignExercise({...assignment, dueDate: parseLocalDate(assignment.dueDate).toISOString(),});
       setMsg('Assigned.');
     }catch (err)
     {
@@ -167,7 +168,7 @@ export default function CoachDashboard() {
     try {
       const { data } = await bulkAssignExercise({
         exerciseId: assignment.exerciseId,
-        dueDate: assignment.dueDate,
+        dueDate: parseLocalDate(assignment.dueDate).toISOString(),
       });
       setMsg(data.message);
     } catch (err) {
@@ -178,13 +179,19 @@ export default function CoachDashboard() {
   const handleCreateGame = async (e) => {
     e.preventDefault();
     try {
-      await createGame(games);
+      await createGame({ ...games, date: parseLocalDate(games.date).toISOString() });
       setMsg('Game date added.');
       setGame({ title: '', location: '', date: '' });
     } catch (err) {
       setMsg(err.response?.data?.error || 'Failed to add game date.');
     }
   };
+
+  function parseLocalDate(dateInput) {
+    if (!dateInput) return null;
+    const datePart = typeof dateInput === 'string' ? dateInput.split('T')[0] : dayjs(dateInput).format('YYYY-MM-DD');
+    return new Date(`${datePart}T00:00:00`);
+  }
 
   return (
     <Container className="mt-4">
@@ -216,6 +223,12 @@ export default function CoachDashboard() {
               value={exercise.description}
               onChange={(e) => setExercise({ ...exercise, description: e.target.value })}
             />
+              <Form.Control
+                className="mb-2" type="number" placeholder="Target duration (minutes)"
+                value={exercise.targetDurationMinutes}
+                onChange={(e) => setExercise({ ...exercise, targetDurationMinutes: Number(e.target.value) })}
+                required
+              />
             <Button type="submit" size="sm">Create</Button>
           </Form>
         </Col>
@@ -343,7 +356,7 @@ export default function CoachDashboard() {
             {selectedProgressMember.assignments.map((a) => (
               <ListGroup.Item key={a._id} className="d-flex justify-content-between align-items-center">
                 <div>
-                  {a.exercise?.name || "Unknown Exercise"} — due {new Date(a.dueDate).toLocaleDateString()}
+                  {a.exercise?.name || "Unknown Exercise"} — due {parseLocalDate(a.dueDate).toLocaleDateString()}
                 </div>
                 <div className="d-flex gap-2 align-items-center">
                   <Badge bg={a.completed ? 'success' : 'secondary'}>
@@ -377,17 +390,17 @@ export default function CoachDashboard() {
           <Form.Control
             className="mb-2" placeholder="e.g. vs. Riverside High"
             value={games.title}
-            onChange={(e) => setGames({ ...games, title: e.target.value })} required
+            onChange={(e) => setGame({ ...games, title: e.target.value })} required
           />
           <Form.Control
             className="mb-2" placeholder="Location (optional)"
             value={games.location}
-            onChange={(e) => setGames({ ...games, location: e.target.value })}
+            onChange={(e) => setGame({ ...games, location: e.target.value })}
           />
           <Form.Control
             className="mb-2" type="date"
             value={games.date}
-            onChange={(e) => setGames({ ...games, date: e.target.value })} required
+            onChange={(e) => setGame({ ...games, date: e.target.value })} required
           />
           <Button type="submit" size="sm">Add Game</Button>
         </Form>

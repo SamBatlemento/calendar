@@ -61,8 +61,8 @@ export default function AthleteDashboard() {
     id: a._id,
     type: 'exercise',
     title: a.loggedMinutes ? `✓ ${a.exercise.name}` : a.exercise.name,
-    start: new Date(a.dueDate),
-    end: new Date(a.dueDate),
+    start: parseLocalDate(a.dueDate),
+    end: parseLocalDate(a.dueDate),
     allDay: true,
     resource: a,
   }));
@@ -71,8 +71,8 @@ export default function AthleteDashboard() {
     id: g._id,
     type: 'game',
     title: `🏆 ${g.title}`,
-    start: new Date(g.date),
-    end: new Date(g.date),
+    start: parseLocalDate(g.date),
+    end: parseLocalDate(g.date),
     allDay: true,
     resource: g,
   }));
@@ -103,7 +103,7 @@ export default function AthleteDashboard() {
     e.preventDefault();
     await logMeal({
       ...meal,
-      date: meal.date ? new Date(meal.date).toISOString() : new Date().toISOString(),
+      date: meal.date ? parseLocalDate(meal.date).toISOString() : new Date().toISOString(),
     });
     setMeal({ name: '', calories: '', time: 'Breakfast', date: '' });
     const { data } = await getMyMeals(mealDate);
@@ -117,7 +117,7 @@ export default function AthleteDashboard() {
         name: editingMeal.meal,
         calories: editingMeal.calories,
         time: editingMeal.time,
-        date: new Date(editingMeal.date).toISOString(),
+        date: parseLocalDate(editingMeal.date).toISOString(),
       });
       setMsg('Meal updated.');
       setEditingMeal(null);
@@ -139,6 +139,12 @@ export default function AthleteDashboard() {
       setMsg(err.response?.data?.error || 'Failed to delete meal.');
     }
   };
+
+  function parseLocalDate(dateInput) {
+    if (!dateInput) return null;
+    const datePart = typeof dateInput === 'string' ? dateInput.split('T')[0] : dayjs(dateInput).format('YYYY-MM-DD');
+    return new Date(`${datePart}T00:00:00`);
+  }
 
   return (
     <Container className="mt-4">
@@ -184,7 +190,7 @@ export default function AthleteDashboard() {
               {selectedEvent.type === 'game' ? (
                 <div>
                   {selectedEvent.resource.location && <p>Location: {selectedEvent.resource.location}</p>}
-                  <p className="text-muted mb-0">{new Date(selectedEvent.resource.date).toLocaleDateString()}</p>
+                  <p className="text-muted mb-0">{parseLocalDate(selectedEvent.resource.date).toLocaleDateString()}</p>
                 </div>
               ) : selectedEvent.resource.loggedMinutes ? (
                 <p className="mb-0">Logged: {selectedEvent.resource.loggedMinutes} minutes</p>
@@ -260,13 +266,13 @@ export default function AthleteDashboard() {
                 <ListGroup.Item key={m._id} className="d-flex justify-content-between align-items-center">
                   <div>
                     <strong>{m.meal}</strong> — {m.calories} cal
-                    <span className="text-muted ms-2">{new Date(m.date).toLocaleDateString()}</span>
+                    <span className="text-muted ms-2">{parseLocalDate(m.date).toLocaleDateString()}</span>
                   </div>
                   <div className="d-flex gap-2 align-items-center">
                     <Badge bg="secondary">{m.time}</Badge>
                     <Button size="sm" variant="outline-secondary" onClick={() => setEditingMeal({
                       ...m,
-                      date: new Date(m.date).toISOString().split('T')[0],
+                      date: m.date.split('T')[0], // convert to YYYY-MM-DD for the form
                     })}>
                       Edit
                     </Button>
