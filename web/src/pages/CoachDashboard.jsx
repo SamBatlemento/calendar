@@ -24,15 +24,14 @@ export default function CoachDashboard() {
   const [editingGame, setEditingGame] = useState(null);
   
   const handleLogout = () => {
-  logout();
-  navigate('/login');
+    logout();
+    navigate('/login');
   };
 
   const loadDropdownData = async () => {
     try {
       const exercisesResponse = await getExercises();
       const membersResponse = await getTeamMembers();
-
       setExercises(exercisesResponse.data);
       setTeamMembers(membersResponse.data);
     } catch (err) {
@@ -46,6 +45,12 @@ export default function CoachDashboard() {
     loadGames();
   }, []);
 
+  function parseLocalDate(dateInput) {
+    if (!dateInput) return null;
+    const datePart = typeof dateInput === 'string' ? dateInput.split('T')[0] : dayjs(dateInput).format('YYYY-MM-DD');
+    return new Date(`${datePart}T00:00:00`);
+  }
+
   const handleCreateExercise = async (e) => {
     e.preventDefault();
     try
@@ -54,8 +59,7 @@ export default function CoachDashboard() {
       setMsg(`Exercise "${exercise.name}" created.`);
       setExercise({ name: '', description: '', targetDurationMinutes: 30});
       loadDropdownData();
-    }catch (err)
-    {
+    }catch (err){
       setMsg(err.response?.data?.error || 'Failed to create exercise');
     }
   };
@@ -69,8 +73,7 @@ export default function CoachDashboard() {
       {
       refreshProgress();
       }
-    }catch (err)
-    {
+    }catch (err){
       setMsg(err.response?.data?.error || 'Failed to assign exercise.');
     }
   };
@@ -83,17 +86,16 @@ export default function CoachDashboard() {
       setMsg(`Added ${athleteEmail} to your team.`);
       setAthleteEmail('');
       loadDropdownData();
-    }catch (err)
-    {
+    }catch (err){
       setMsg(err.response?.data?.error || 'Failed to add athlete.');
     }
   };
 
   const viewProgress = async (member) => {
     try {
-    if (selectedProgressMember?.member._id === member._id) {
-      setSelectedProgressMember(null);
-      return;
+      if (selectedProgressMember?.member._id === member._id) {
+        setSelectedProgressMember(null);
+        return;
     }
     const { data } = await getAssignmentsForMember(member._id);
     setSelectedProgressMember({ member, assignments: data });
@@ -198,12 +200,6 @@ export default function CoachDashboard() {
     }
   };
 
-  function parseLocalDate(dateInput) {
-    if (!dateInput) return null;
-    const datePart = typeof dateInput === 'string' ? dateInput.split('T')[0] : dayjs(dateInput).format('YYYY-MM-DD');
-    return new Date(`${datePart}T00:00:00`);
-  }
-
   const loadGames = async () => {
     try {
       const { data } = await getGames();
@@ -241,96 +237,130 @@ export default function CoachDashboard() {
   };
 
   return (
-    <Container className="mt-4">
-      <h2>Coach Dashboard</h2>
-      {msg && <Alert variant="info" onClose={() => setMsg(null)} dismissible>{msg}</Alert>}
+    <main className="theme-page" aria-labelledby="coach-heading">
+      <Container className="mt-4">
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <h2 id="coach-heading" className="theme-heading mb-0">Coach Dashboard</h2>
+          <Button variant="outline-secondary" size="sm" className="theme-btn-outline" onClick={handleLogout}>
+            Sign Out
+          </Button>
+        </div>
 
-      <Row className="mt-4">
-        <Col md={4}>
-          <h5>Add Team Athlete</h5>
-          <Form onSubmit={handleAddAthlete}>
-            <Form.Control
-              className="mb-2" placeholder="athlete@email.com"
-              value={athleteEmail} onChange={(e) => setAthleteEmail(e.target.value)} required
-            />
-            <Button type="submit" size="sm">Add Athlete</Button>
-          </Form>
-        </Col>
+        {msg && <Alert variant="info" onClose={() => setMsg(null)} dismissible>{msg}</Alert>}
 
-        <Col md={4}>
-          <h5>Create Exercise</h5>
-          <Form onSubmit={handleCreateExercise}>
-            <Form.Control
-              className="mb-2" placeholder="Exercise name"
-              value={exercise.name}
-              onChange={(e) => setExercise({ ...exercise, name: e.target.value })} required
-            />
-            <Form.Control
-              className="mb-2" placeholder="Description" as="textarea" rows={2}
-              value={exercise.description}
-              onChange={(e) => setExercise({ ...exercise, description: e.target.value })}
-            />
-              <Form.Control
-                className="mb-2" type="number" placeholder="Target duration (minutes)"
-                value={exercise.targetDurationMinutes}
-                onChange={(e) => setExercise({ ...exercise, targetDurationMinutes: Number(e.target.value) })}
-                required
-              />
-            <Button type="submit" size="sm">Create</Button>
-          </Form>
-        </Col>
-
-        <Col md={4}>
-          <h5>Assign Exercise</h5>
-          <Form onSubmit={handleAssign}>
-            <Form.Select
-              className="mb-2" value={assignment.exerciseId}
-              onChange={(e) => setAssignment({ ...assignment, exerciseId: e.target.value })} required
-            >
-              <option value="">Select exercise...</option>
-              {exercises.map((ex) => (
-                <option key={ex._id} value={ex._id}>{ex.name}</option>
-              ))}
-            </Form.Select>
-            <Form.Select
-              className="mb-2" value={assignment.athleteId}
-              onChange={(e) => setAssignment({ ...assignment, athleteId: e.target.value })} required
-            >
-              <option value="">Select athlete...</option>
-              {teamMembers.map((m) => (
-                <option key={m._id} value={m._id}>{m.firstName} {m.lastName}</option>
-              ))}
-            </Form.Select>
-            <Form.Control
-              className="mb-2" type="date"
-              value={assignment.dueDate}
-              onChange={(e) => setAssignment({ ...assignment, dueDate: e.target.value })} required
-            />
-            <div className="d-flex gap-2">
-              <Button type="submit" size="sm">Assign to Selected Athlete</Button>
-              <Button type="button" size="sm" variant="outline-secondary" onClick={handleBulkAssign}>
-                Assign to Entire Team
-              </Button>
+        <Row className="mt-4">
+          <Col md={4}>
+            <div className="theme-card h-100">
+              <h5 className="theme-heading">Add Team Athlete</h5>
+              <Form onSubmit={handleAddAthlete}>
+                <Form.Group className="mb-2" controlId="add-athlete-email">
+                  <Form.Label className="visually-hidden">Athlete email</Form.Label>
+                  <Form.Control
+                    placeholder="athlete@email.com"
+                    value={athleteEmail} onChange={(e) => setAthleteEmail(e.target.value)} required
+                  />
+                </Form.Group>
+                <Button type="submit" size="sm" className="theme-btn-primary">Add Athlete</Button>
+              </Form>
             </div>
-          </Form>
-        </Col>
-      </Row>
+          </Col>
+
+          <Col md={4}>
+            <div className="theme-card h-100">
+              <h5 className="theme-heading">Create Exercise</h5>
+              <Form onSubmit={handleCreateExercise}>
+                <Form.Group className="mb-2" controlId="create-exercise-name">
+                  <Form.Label className="visually-hidden">Exercise name</Form.Label>
+                  <Form.Control
+                    placeholder="Exercise name"
+                    value={exercise.name}
+                    onChange={(e) => setExercise({ ...exercise, name: e.target.value })} required
+                  />
+                </Form.Group>
+                <Form.Group className="mb-2" controlId="create-exercise-description">
+                  <Form.Label className="visually-hidden">Description</Form.Label>
+                  <Form.Control
+                    placeholder="Description" as="textarea" rows={2}
+                    value={exercise.description}
+                    onChange={(e) => setExercise({ ...exercise, description: e.target.value })}
+                  />
+                </Form.Group>
+                <Form.Group className="mb-2" controlId="create-exercise-duration">
+                  <Form.Label className="visually-hidden">Target duration in minutes</Form.Label>
+                  <Form.Control
+                    type="number" placeholder="Target duration (minutes)"
+                    value={exercise.targetDurationMinutes}
+                    onChange={(e) => setExercise({ ...exercise, targetDurationMinutes: Number(e.target.value) })}
+                    required
+                  />
+                </Form.Group>
+                <Button type="submit" size="sm" className="theme-btn-primary">Create</Button>
+              </Form>
+            </div>
+          </Col>
+
+          <Col md={4}>
+            <div className="theme-card h-100">
+              <h5 className="theme-heading">Assign Exercise</h5>
+              <Form onSubmit={handleAssign}>
+                <Form.Group className="mb-2" controlId="assign-exercise-select">
+                  <Form.Label className="visually-hidden">Exercise</Form.Label>
+                  <Form.Select
+                    value={assignment.exerciseId}
+                    onChange={(e) => setAssignment({ ...assignment, exerciseId: e.target.value })} required
+                  >
+                    <option value="">Select exercise...</option>
+                    {exercises.map((ex) => (
+                      <option key={ex._id} value={ex._id}>{ex.name}</option>
+                    ))}
+                  </Form.Select>
+                </Form.Group>
+                <Form.Group className="mb-2" controlId="assign-athlete-select">
+                  <Form.Label className="visually-hidden">Athlete</Form.Label>
+                  <Form.Select
+                    value={assignment.athleteId}
+                    onChange={(e) => setAssignment({ ...assignment, athleteId: e.target.value })} required
+                  >
+                    <option value="">Select athlete...</option>
+                    {teamMembers.map((m) => (
+                      <option key={m._id} value={m._id}>{m.firstName} {m.lastName}</option>
+                    ))}
+                  </Form.Select>
+                </Form.Group>
+                <Form.Group className="mb-2" controlId="assign-due-date">
+                  <Form.Label className="visually-hidden">Due date</Form.Label>
+                  <Form.Control
+                    type="date"
+                    value={assignment.dueDate}
+                    onChange={(e) => setAssignment({ ...assignment, dueDate: e.target.value })} required
+                  />
+                </Form.Group>
+                <div className="d-flex gap-2">
+                  <Button type="submit" size="sm" className="theme-btn-primary">Assign to Selected Athlete</Button>
+                  <Button type="button" size="sm" className="theme-btn-outline" onClick={handleBulkAssign}>
+                    Assign to Entire Team
+                  </Button>
+                </div>
+              </Form>
+            </div>
+          </Col>
+        </Row>
 
         <hr className="my-4" />
-        <h5>Manage Exercises</h5>
+        <h5 className="theme-heading">Manage Exercises</h5>
         <ListGroup className="mb-3">
           {exercises.map((ex) => (
             <ListGroup.Item key={ex._id} className="d-flex justify-content-between align-items-center">
               <div>
                 <strong>{ex.name}</strong>
-                <span className="text-muted ms-2">{ex.targetDuration} min</span>
+                <span className="theme-muted ms-2">{ex.targetDuration} min</span>
               </div>
               <div className="d-flex gap-2">
-                <Button size="sm" variant="outline-secondary" onClick={() => 
+                <Button size="sm" className="theme-btn-outline" onClick={() =>
                   setEditingExercise({ ...ex, targetDurationMinutes: ex.targetDuration })}>
                   Edit
                 </Button>
-                <Button size="sm" variant="outline-danger" onClick={() => handleDeleteExercise(ex._id)}>
+                <Button size="sm" className="theme-btn-danger" onClick={() => handleDeleteExercise(ex._id)}>
                   Delete
                 </Button>
               </div>
@@ -343,7 +373,7 @@ export default function CoachDashboard() {
           <Modal.Body>
             {editingExercise && (
               <Form onSubmit={handleUpdateExercise}>
-                <Form.Group className="mb-2">
+                <Form.Group className="mb-2" controlId="edit-exercise-name">
                   <Form.Label>Name</Form.Label>
                   <Form.Control
                     value={editingExercise.name}
@@ -351,7 +381,7 @@ export default function CoachDashboard() {
                     required
                   />
                 </Form.Group>
-                <Form.Group className="mb-2">
+                <Form.Group className="mb-2" controlId="edit-exercise-description">
                   <Form.Label>Description</Form.Label>
                   <Form.Control
                     as="textarea" rows={2}
@@ -360,7 +390,7 @@ export default function CoachDashboard() {
                     required
                   />
                 </Form.Group>
-                <Form.Group className="mb-3">
+                <Form.Group className="mb-3" controlId="edit-exercise-duration">
                   <Form.Label>Target Duration (minutes)</Form.Label>
                   <Form.Control
                     type="number"
@@ -369,154 +399,166 @@ export default function CoachDashboard() {
                     required
                   />
                 </Form.Group>
-                <Button type="submit" size="sm">Save Changes</Button>
+                <Button type="submit" size="sm" className="theme-btn-primary">Save Changes</Button>
               </Form>
             )}
           </Modal.Body>
         </Modal>
 
-      <hr className="my-4" />
+        <hr className="my-4" />
+        <h5 className="theme-heading">Team Progress</h5>
+        <ListGroup className="mb-3">
+          {teamMembers.map((m) => (
+            <ListGroup.Item key={m._id} className="d-flex justify-content-between align-items-center">
+              {m.firstName} {m.lastName}
+              <div className="d-flex gap-2">
+                <Button size="sm" className="theme-btn-outline" onClick={() => viewProgress(m)}>
+                  View Progress
+                </Button>
+                <Button size="sm" className="theme-btn-danger" onClick={() => handleRemoveAthlete(m._id)}>
+                  Remove
+                </Button>
+              </div>
+            </ListGroup.Item>
+          ))}
+        </ListGroup>
 
-      <h5>Team Progress</h5>
-      <ListGroup className="mb-3">
-        {teamMembers.map((m) => (
-          <ListGroup.Item key={m._id} className="d-flex justify-content-between align-items-center">
-            {m.firstName} {m.lastName}
-            <div className="d-flex gap-2">
-              <Button size="sm" variant="outline-secondary" onClick={() => viewProgress(m)}>
-                View Progress
-              </Button>
-              <Button size="sm" variant="outline-danger" onClick={() => handleRemoveAthlete(m._id)}>
-                Remove
-              </Button>
+        {selectedProgressMember && (
+          <div className="theme-card mb-4">
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <h6 className="theme-heading mb-0">{selectedProgressMember.member.firstName}'s Assignments</h6>
             </div>
-          </ListGroup.Item>
-        ))}
-      </ListGroup>
-
-      {selectedProgressMember && (
-        <div>
-          <div className="d-flex justify-content-between align-items-center">
-            <h6>{selectedProgressMember.member.firstName}'s Assignments</h6>
+            <ListGroup>
+              {selectedProgressMember.assignments.map((a) => (
+                <ListGroup.Item key={a._id} className="d-flex justify-content-between align-items-center">
+                  <div>
+                    {a.exercise?.name || "Unknown Exercise"} — due {parseLocalDate(a.dueDate).toLocaleDateString()}
+                  </div>
+                  <div className="d-flex gap-2 align-items-center">
+                    <Badge bg={a.completed ? 'success' : 'secondary'}>
+                      {a.completed ? 'Completed' : 'Not completed'}
+                    </Badge>
+                    {!a.completed && (
+                      <>
+                        <Form.Group controlId={`due-date-${a._id}`} className="mb-0">
+                          <Form.Label className="visually-hidden">
+                            New due date for {a.exercise?.name || 'this assignment'}
+                          </Form.Label>
+                          <Form.Control
+                            size="sm" type="date" style={{ width: 150 }}
+                            value={editingDueDate[a._id] ?? ''}
+                            onChange={(e) => setEditingDueDate({ ...editingDueDate, [a._id]: e.target.value })}
+                          />
+                        </Form.Group>
+                        <Button size="sm" className="theme-btn-outline" onClick={() => handleUpdateDueDate(a._id)}>
+                          Update
+                        </Button>
+                      </>
+                    )}
+                    <Button size="sm" className="theme-btn-danger" onClick={() => handleDeleteAssignment(a._id)}>
+                      Delete
+                    </Button>
+                  </div>
+                </ListGroup.Item>
+              ))}
+            </ListGroup>
           </div>
-          <ListGroup>
-            {selectedProgressMember.assignments.map((a) => (
-              <ListGroup.Item key={a._id} className="d-flex justify-content-between align-items-center">
-                <div>
-                  {a.exercise?.name || "Unknown Exercise"} — due {parseLocalDate(a.dueDate).toLocaleDateString()}
-                </div>
-                <div className="d-flex gap-2 align-items-center">
-                  <Badge bg={a.completed ? 'success' : 'secondary'}>
-                    {a.completed ? 'Completed' : 'Not completed'}
-                  </Badge>
-                  {!a.completed && (
-                    <>
-                      <Form.Control
-                        size="sm" type="date" style={{ width: 150 }}
-                        value={editingDueDate[a._id] ?? ''}
-                        onChange={(e) => setEditingDueDate({ ...editingDueDate, [a._id]: e.target.value })}
-                      />
-                      <Button size="sm" variant="outline-secondary" onClick={() => handleUpdateDueDate(a._id)}>
-                        Update
-                      </Button>
-                    </>
-                  )}
-                  <Button size="sm" variant="outline-danger" onClick={() => handleDeleteAssignment(a._id)}>
-                    Delete
-                  </Button>
-                </div>
-              </ListGroup.Item>
-            ))}
-          </ListGroup>
-        </div>
-      )}
-
-      <Col md={4}>
-        <h5>Add Game Date</h5>
-        <Form onSubmit={handleCreateGame}>
-          <Form.Control
-            className="mb-2" placeholder="e.g. vs. Riverside High"
-            value={games.title}
-            onChange={(e) => setGame({ ...games, title: e.target.value })} required
-          />
-          <Form.Control
-            className="mb-2" placeholder="Location (optional)"
-            value={games.location}
-            onChange={(e) => setGame({ ...games, location: e.target.value })}
-          />
-          <Form.Control
-            className="mb-2" type="date"
-            value={games.date}
-            onChange={(e) => setGame({ ...games, date: e.target.value })} required
-          />
-          <Button type="submit" size="sm">Add Game</Button>
-        </Form>
-      </Col>
-
-      <hr className="my-4" />
-      <h5>Manage Games</h5>
-      <ListGroup className="mb-3">
-        {gamesList.length === 0 && (
-          <ListGroup.Item className="text-muted">No game dates added yet.</ListGroup.Item>
         )}
-        {gamesList.map((g) => (
-          <ListGroup.Item key={g._id} className="d-flex justify-content-between align-items-center">
-            <div>
-              <strong>{g.title}</strong>
-              <span className="text-muted ms-2">{parseLocalDate(g.date).toLocaleDateString()}</span>
-              {g.location && <span className="text-muted ms-2">— {g.location}</span>}
-            </div>
-            <div className="d-flex gap-2">
-              <Button size="sm" variant="outline-secondary" onClick={() => setEditingGame({
-                ...g,
-                date: g.date.split('T')[0], // format for the date input
-              })}>
-                Edit
-              </Button>
-              <Button size="sm" variant="outline-danger" onClick={() => handleDeleteGame(g._id)}>
-                Delete
-              </Button>
-            </div>
-          </ListGroup.Item>
-        ))}
-      </ListGroup>
 
-      <Modal show={!!editingGame} onHide={() => setEditingGame(null)}>
-        <Modal.Header closeButton><Modal.Title>Edit Game</Modal.Title></Modal.Header>
-        <Modal.Body>
-          {editingGame && (
-            <Form onSubmit={handleUpdateGame}>
-              <Form.Group className="mb-2">
-                <Form.Label>Title</Form.Label>
-                <Form.Control
-                  value={editingGame.title}
-                  onChange={(e) => setEditingGame({ ...editingGame, title: e.target.value })}
-                  required
-                />
-              </Form.Group>
-              <Form.Group className="mb-2">
-                <Form.Label>Location</Form.Label>
-                <Form.Control
-                  value={editingGame.location || ''}
-                  onChange={(e) => setEditingGame({ ...editingGame, location: e.target.value })}
-                />
-              </Form.Group>
-              <Form.Group className="mb-3">
-                <Form.Label>Date</Form.Label>
-                <Form.Control
-                  type="date"
-                  value={editingGame.date}
-                  onChange={(e) => setEditingGame({ ...editingGame, date: e.target.value })}
-                  required
-                />
-              </Form.Group>
-              <Button type="submit" size="sm">Save Changes</Button>
-            </Form>
+        <div className="theme-card mb-4" style={{ maxWidth: 420 }}>
+          <h5 className="theme-heading">Add Game Date</h5>
+          <Form onSubmit={handleCreateGame}>
+            <Form.Group className="mb-2" controlId="add-game-title">
+              <Form.Label className="visually-hidden">Game title</Form.Label>
+              <Form.Control
+                placeholder="e.g. vs. Riverside High"
+                value={games.title}
+                onChange={(e) => setGame({ ...games, title: e.target.value })} required
+              />
+            </Form.Group>
+            <Form.Group className="mb-2" controlId="add-game-location">
+              <Form.Label className="visually-hidden">Game location</Form.Label>
+              <Form.Control
+                placeholder="Location (optional)"
+                value={games.location}
+                onChange={(e) => setGame({ ...games, location: e.target.value })}
+              />
+            </Form.Group>
+            <Form.Group className="mb-2" controlId="add-game-date">
+              <Form.Label className="visually-hidden">Game date</Form.Label>
+              <Form.Control
+                type="date"
+                value={games.date}
+                onChange={(e) => setGame({ ...games, date: e.target.value })} required
+              />
+            </Form.Group>
+            <Button type="submit" size="sm" className="theme-btn-primary">Add Game</Button>
+          </Form>
+        </div>
+
+        <hr className="my-4" />
+        <h5 className="theme-heading">Manage Games</h5>
+        <ListGroup className="mb-3">
+          {gamesList.length === 0 && (
+            <ListGroup.Item className="theme-muted">No game dates added yet.</ListGroup.Item>
           )}
-        </Modal.Body>
-      </Modal>
+          {gamesList.map((g) => (
+            <ListGroup.Item key={g._id} className="d-flex justify-content-between align-items-center">
+              <div>
+                <strong>{g.title}</strong>
+                <span className="theme-muted ms-2">{parseLocalDate(g.date).toLocaleDateString()}</span>
+                {g.location && <span className="theme-muted ms-2">— {g.location}</span>}
+              </div>
+              <div className="d-flex gap-2">
+                <Button size="sm" className="theme-btn-outline" onClick={() => setEditingGame({
+                  ...g,
+                  date: g.date.split('T')[0],
+                })}>
+                  Edit
+                </Button>
+                <Button size="sm" className="theme-btn-danger" onClick={() => handleDeleteGame(g._id)}>
+                  Delete
+                </Button>
+              </div>
+            </ListGroup.Item>
+          ))}
+        </ListGroup>
 
-      <Button variant="outline-secondary" size="sm" onClick={handleLogout}>Sign Out</Button>
-    </Container>
+        <Modal show={!!editingGame} onHide={() => setEditingGame(null)}>
+          <Modal.Header closeButton><Modal.Title>Edit Game</Modal.Title></Modal.Header>
+          <Modal.Body>
+            {editingGame && (
+              <Form onSubmit={handleUpdateGame}>
+                <Form.Group className="mb-2" controlId="edit-game-title">
+                  <Form.Label>Title</Form.Label>
+                  <Form.Control
+                    value={editingGame.title}
+                    onChange={(e) => setEditingGame({ ...editingGame, title: e.target.value })}
+                    required
+                  />
+                </Form.Group>
+                <Form.Group className="mb-2" controlId="edit-game-location">
+                  <Form.Label>Location</Form.Label>
+                  <Form.Control
+                    value={editingGame.location || ''}
+                    onChange={(e) => setEditingGame({ ...editingGame, location: e.target.value })}
+                  />
+                </Form.Group>
+                <Form.Group className="mb-3" controlId="edit-game-date">
+                  <Form.Label>Date</Form.Label>
+                  <Form.Control
+                    type="date"
+                    value={editingGame.date}
+                    onChange={(e) => setEditingGame({ ...editingGame, date: e.target.value })}
+                    required
+                  />
+                </Form.Group>
+                <Button type="submit" size="sm" className="theme-btn-primary">Save Changes</Button>
+              </Form>
+            )}
+          </Modal.Body>
+        </Modal>
+      </Container>
+    </main>
   );
 }

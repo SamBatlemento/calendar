@@ -15,26 +15,33 @@ export default function ForgotPasswordPage() {
 
   if (sent) {
     return (
-      <Container className="mt-5 text-center" style={{ maxWidth: 420 }}>
-        <Alert variant="info">If that email exists, a reset link has been sent.</Alert>
-        <Link to="/login">Back to login</Link>
-      </Container>
+      <main className="theme-page" aria-labelledby="forgot-status-heading">
+        <Container className="mt-5 text-center" style={{ maxWidth: 420 }}>
+          <h2 id="forgot-status-heading" className="visually-hidden">Reset link status</h2>
+          <Alert variant="info">If that email exists, a reset link has been sent.</Alert>
+          <Link to="/login" className="theme-link">Back to login</Link>
+        </Container>
+      </main>
     );
   }
 
   return (
-    <Container className="mt-5" style={{ maxWidth: 420 }}>
-      <h2 className="mb-4">Forgot Password</h2>
-      <Form onSubmit={handleSubmit}>
-        <Form.Group className="mb-4">
-          <Form.Label>Email</Form.Label>
-          <Form.Control type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
-        </Form.Group>
-        <Button type="submit" className="w-100">Send Reset Link</Button>
-      </Form>
-      <div className="text-center mt-3">
-        <Link to="/login">Back to login</Link>
-      </div>
-    </Container>
+    <main className="theme-page" aria-labelledby="forgot-heading">
+      <Container style={{ maxWidth: 420 }}>
+        <div className="theme-card">
+          <h2 id="forgot-heading" className="theme-heading mb-4">Forgot Password</h2>
+          <Form onSubmit={handleSubmit}>
+            <Form.Group className="mb-4" controlId="forgot-email">
+              <Form.Label>Email</Form.Label>
+              <Form.Control type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+            </Form.Group>
+            <Button type="submit" className="w-100 theme-btn-primary">Send Reset Link</Button>
+          </Form>
+          <div className="text-center mt-3">
+            <Link to="/login" className="theme-link">Back to login</Link>
+          </div>
+        </div>
+      </Container>
+    </main>
   );
 }

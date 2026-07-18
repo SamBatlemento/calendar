@@ -147,194 +147,223 @@ export default function AthleteDashboard() {
   }
 
   return (
-    <Container className="mt-4">
-      {/* Header row: title left, sign out top-right */}
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <h2 className="mb-0">My Calendar</h2>
-        <Button variant="outline-secondary" size="sm" onClick={handleLogout}>Sign Out</Button>
-      </div>
+    <main className="theme-page" aria-labelledby="athlete-heading">
+      <Container className="mt-4">
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <h2 id="athlete-heading" className="theme-heading mb-0">My Calendar</h2>
+          <Button variant="outline-secondary" size="sm" className="theme-btn-outline" onClick={handleLogout}>
+            Sign Out
+          </Button>
+        </div>
 
-      {msg && <Alert variant="info" onClose={() => setMsg(null)} dismissible>{msg}</Alert>}
+        {msg && <Alert variant="info" onClose={() => setMsg(null)} dismissible>{msg}</Alert>}
 
-      {/* Calendar at the top */}
-      <div style={{ height: 600 }} className="mb-4">
-        <Calendar
-          localizer={localizer}
-          events={events}
-          startAccessor="start"
-          endAccessor="end"
-          onSelectEvent={handleSelectEvent}
-          onRangeChange={handleRangeChange}
-          eventPropGetter={(event) => ({
-            style: {
-              backgroundColor: event.type === 'game'
-                ? '#1f4d3d'
-                : event.resource.loggedMinutes ? '#2f8f5b' : '#ff6b4a',
-            },
-          })}
-        />
-      </div>
+        <div style={{ height: 600 }} className="mb-4">
+          <Calendar
+            localizer={localizer}
+            events={events}
+            startAccessor="start"
+            endAccessor="end"
+            onSelectEvent={handleSelectEvent}
+            onRangeChange={handleRangeChange}
+            eventPropGetter={(event) => ({
+              style: {
+                backgroundColor: event.type === 'game'
+                  ? '#1f4d3d'
+                  : event.resource.loggedMinutes ? '#2f8f5b' : '#ff6b4a',
+              },
+            })}
+          />
+        </div>
 
-      {/* Bottom section: selected event details + meal logging */}
-      <div id="selected-event-panel">
-        {selectedEvent && (
-          <Card className="mb-4">
-            <Card.Body>
-              <div className="d-flex justify-content-between align-items-start">
-                <Card.Title>{selectedEvent.title}</Card.Title>
-                <Button size="sm" variant="outline-secondary" onClick={() => setSelectedEvent(null)}>
-                  Close
-                </Button>
-              </div>
-
-              {selectedEvent.type === 'game' ? (
-                <div>
-                  {selectedEvent.resource.location && <p>Location: {selectedEvent.resource.location}</p>}
-                  <p className="text-muted mb-0">{parseLocalDate(selectedEvent.resource.date).toLocaleDateString()}</p>
+        <div id="selected-event-panel">
+          {selectedEvent && (
+            <Card className="mb-4 theme-card">
+              <Card.Body>
+                <div className="d-flex justify-content-between align-items-start">
+                  <Card.Title className="theme-heading">{selectedEvent.title}</Card.Title>
+                  <Button size="sm" className="theme-btn-outline" onClick={() => setSelectedEvent(null)}>
+                    Close
+                  </Button>
                 </div>
-              ) : selectedEvent.resource.loggedMinutes ? (
-                <p className="mb-0">Logged: {selectedEvent.resource.loggedMinutes} minutes</p>
-              ) : (
-                <Form onSubmit={handleLogTime} className="d-flex gap-2 align-items-end">
-                  <Form.Group>
-                    <Form.Label>Minutes completed</Form.Label>
+
+                {selectedEvent.type === 'game' ? (
+                  <div>
+                    {selectedEvent.resource.location && <p>Location: {selectedEvent.resource.location}</p>}
+                    <p className="theme-muted mb-0">{parseLocalDate(selectedEvent.resource.date).toLocaleDateString()}</p>
+                  </div>
+                ) : selectedEvent.resource.loggedMinutes ? (
+                  <p className="mb-0">Logged: {selectedEvent.resource.loggedMinutes} minutes</p>
+                ) : (
+                  <Form onSubmit={handleLogTime} className="d-flex gap-2 align-items-end">
+                    <Form.Group controlId="log-time-minutes">
+                      <Form.Label>Minutes completed</Form.Label>
+                      <Form.Control
+                        type="number"
+                        value={minutes}
+                        onChange={(e) => setMinutes(e.target.value)}
+                        required
+                      />
+                    </Form.Group>
+                    <Button type="submit" className="theme-btn-primary">Log Time</Button>
+                  </Form>
+                )}
+              </Card.Body>
+            </Card>
+          )}
+
+          <Row>
+            <Col md={6}>
+              <div className="theme-card mb-4">
+                <h5 className="theme-heading">Log a Meal</h5>
+                <Form onSubmit={handleLogMeal} className="d-flex gap-2 flex-wrap mb-3">
+                  <Form.Group controlId="log-meal-name" className="mb-0">
+                    <Form.Label className="visually-hidden">Meal name</Form.Label>
                     <Form.Control
-                      type="number"
-                      value={minutes}
-                      onChange={(e) => setMinutes(e.target.value)}
-                      required
+                      placeholder="Meal name" value={meal.name}
+                      onChange={(e) => setMeal({ ...meal, name: e.target.value })} required
                     />
                   </Form.Group>
-                  <Button type="submit">Log Time</Button>
+                  <Form.Group controlId="log-meal-calories" className="mb-0">
+                    <Form.Label className="visually-hidden">Calories</Form.Label>
+                    <Form.Control
+                      type="number" placeholder="Calories" style={{ maxWidth: 140 }}
+                      value={meal.calories}
+                      onChange={(e) => setMeal({ ...meal, calories: e.target.value })} required
+                    />
+                  </Form.Group>
+                  <Form.Group controlId="log-meal-type" className="mb-0">
+                    <Form.Label className="visually-hidden">Meal type</Form.Label>
+                    <Form.Select
+                      style={{ maxWidth: 160 }}
+                      value={meal.time}
+                      onChange={(e) => setMeal({ ...meal, time: e.target.value })}
+                    >
+                      <option>Breakfast</option>
+                      <option>Lunch</option>
+                      <option>Dinner</option>
+                      <option>Snack</option>
+                    </Form.Select>
+                  </Form.Group>
+                  <Form.Group controlId="log-meal-date" className="mb-0">
+                    <Form.Label className="visually-hidden">Meal date</Form.Label>
+                    <Form.Control
+                      type="date" style={{ maxWidth: 180 }}
+                      value={meal.date}
+                      onChange={(e) => setMeal({ ...meal, date: e.target.value })}
+                    />
+                  </Form.Group>
+                  <Button type="submit" className="theme-btn-primary">Log</Button>
                 </Form>
-              )}
-            </Card.Body>
-          </Card>
-        )}
 
-        <Row>
-          <Col md={6}>
-            <h5>Log a Meal</h5>
-            <Form onSubmit={handleLogMeal} className="d-flex gap-2 flex-wrap mb-3">
-              <Form.Control
-                placeholder="Meal name" value={meal.name}
-                onChange={(e) => setMeal({ ...meal, name: e.target.value })} required
-              />
-              <Form.Control
-                type="number" placeholder="Calories" style={{ maxWidth: 140 }}
-                value={meal.calories}
-                onChange={(e) => setMeal({ ...meal, calories: e.target.value })} required
-              />
-              <Form.Select
-                style={{ maxWidth: 160 }}
-                value={meal.time}
-                onChange={(e) => setMeal({ ...meal, time: e.target.value })}
-              >
-                <option>Breakfast</option>
-                <option>Lunch</option>
-                <option>Dinner</option>
-                <option>Snack</option>
-              </Form.Select>
-              <Form.Control
-                type="date" style={{ maxWidth: 180 }}
-                value={meal.date}
-                onChange={(e) => setMeal({ ...meal, date: e.target.value })}
-              />
-              <Button type="submit">Log</Button>
-            </Form>
+                <div className="d-flex align-items-center gap-2 mb-3">
+                  <h5 className="theme-heading mb-0">Meals</h5>
+                  <Button
+                    size="sm" className="theme-btn-outline"
+                    aria-label="View previous day"
+                    onClick={() => setMealDate(dayjs(mealDate).subtract(1, 'day').format('YYYY-MM-DD'))}
+                  >
+                    ‹
+                  </Button>
+                  <Form.Group controlId="view-meal-date" className="mb-0">
+                    <Form.Label className="visually-hidden">Viewing meals for date</Form.Label>
+                    <Form.Control
+                      type="date" style={{ maxWidth: 180 }}
+                      value={mealDate}
+                      onChange={(e) => setMealDate(e.target.value)}
+                    />
+                  </Form.Group>
+                  <Button
+                    size="sm" className="theme-btn-outline"
+                    aria-label="View next day"
+                    onClick={() => setMealDate(dayjs(mealDate).add(1, 'day').format('YYYY-MM-DD'))}
+                  >
+                    ›
+                  </Button>
+                  <Button
+                    size="sm" className="theme-btn-outline"
+                    onClick={() => setMealDate(dayjs().format('YYYY-MM-DD'))}
+                  >
+                    Today
+                  </Button>
+                </div>
 
-            <div className="d-flex align-items-center gap-2 mb-3">
-              <h5 className="mb-0">Meals</h5>
-              <Button size="sm" variant="outline-secondary" onClick={() => setMealDate(dayjs(mealDate).subtract(1, 'day').format('YYYY-MM-DD'))}>
-                ‹
-              </Button>
-              <Form.Control
-                type="date" style={{ maxWidth: 180 }}
-                value={mealDate}
-                onChange={(e) => setMealDate(e.target.value)}
-              />
-              <Button size="sm" variant="outline-secondary" onClick={() => setMealDate(dayjs(mealDate).add(1, 'day').format('YYYY-MM-DD'))}>
-                ›
-              </Button>
-              <Button size="sm" variant="outline-secondary" onClick={() => setMealDate(dayjs().format('YYYY-MM-DD'))}>
-                Today
-              </Button>
-            </div>
+                <ListGroup>
+                  {meals.map((m) => (
+                    <ListGroup.Item key={m._id} className="d-flex justify-content-between align-items-center">
+                      <div>
+                        <strong>{m.meal}</strong> — {m.calories} cal
+                        <span className="theme-muted ms-2">{parseLocalDate(m.date).toLocaleDateString()}</span>
+                      </div>
+                      <div className="d-flex gap-2 align-items-center">
+                        <Badge bg="secondary">{m.time}</Badge>
+                        <Button size="sm" className="theme-btn-outline" onClick={() => setEditingMeal({
+                          ...m,
+                          date: m.date.split('T')[0],
+                        })}>
+                          Edit
+                        </Button>
+                        <Button size="sm" className="theme-btn-danger" onClick={() => handleDeleteMeal(m._id)}>
+                          Delete
+                        </Button>
+                      </div>
+                    </ListGroup.Item>
+                  ))}
+                </ListGroup>
+              </div>
+            </Col>
+          </Row>
+        </div>
 
-            <ListGroup>
-              {meals.map((m) => (
-                <ListGroup.Item key={m._id} className="d-flex justify-content-between align-items-center">
-                  <div>
-                    <strong>{m.meal}</strong> — {m.calories} cal
-                    <span className="text-muted ms-2">{parseLocalDate(m.date).toLocaleDateString()}</span>
-                  </div>
-                  <div className="d-flex gap-2 align-items-center">
-                    <Badge bg="secondary">{m.time}</Badge>
-                    <Button size="sm" variant="outline-secondary" onClick={() => setEditingMeal({
-                      ...m,
-                      date: m.date.split('T')[0], // convert to YYYY-MM-DD for the form
-                    })}>
-                      Edit
-                    </Button>
-                    <Button size="sm" variant="outline-danger" onClick={() => handleDeleteMeal(m._id)}>
-                      Delete
-                    </Button>
-                  </div>
-                </ListGroup.Item>
-              ))}
-            </ListGroup>
-          </Col>
-        </Row>
-      </div>
-
-      <Modal show={!!editingMeal} onHide={() => setEditingMeal(null)}>
-        <Modal.Header closeButton><Modal.Title>Edit Meal</Modal.Title></Modal.Header>
-        <Modal.Body>
-          {editingMeal && (
-            <Form onSubmit={handleUpdateMeal}>
-              <Form.Group className="mb-2">
-                <Form.Label>Meal name</Form.Label>
-                <Form.Control
-                  value={editingMeal.meal}
-                  onChange={(e) => setEditingMeal({ ...editingMeal, meal: e.target.value })}
-                  required
-                />
-              </Form.Group>
-              <Form.Group className="mb-2">
-                <Form.Label>Calories</Form.Label>
-                <Form.Control
-                  type="number"
-                  value={editingMeal.calories}
-                  onChange={(e) => setEditingMeal({ ...editingMeal, calories: e.target.value })}
-                  required
-                />
-              </Form.Group>
-              <Form.Group className="mb-2">
-                <Form.Label>Meal type</Form.Label>
-                <Form.Select
-                  value={editingMeal.time}
-                  onChange={(e) => setEditingMeal({ ...editingMeal, time: e.target.value })}
-                >
-                  <option>Breakfast</option>
-                  <option>Lunch</option>
-                  <option>Dinner</option>
-                  <option>Snack</option>
-                </Form.Select>
-              </Form.Group>
-              <Form.Group className="mb-3">
-                <Form.Label>Date</Form.Label>
-                <Form.Control
-                  type="date"
-                  value={editingMeal.date}
-                  onChange={(e) => setEditingMeal({ ...editingMeal, date: e.target.value })}
-                  required
-                />
-              </Form.Group>
-              <Button type="submit" size="sm">Save Changes</Button>
-            </Form>
-          )}
-        </Modal.Body>
-      </Modal>
-    </Container>
+        <Modal show={!!editingMeal} onHide={() => setEditingMeal(null)}>
+          <Modal.Header closeButton><Modal.Title>Edit Meal</Modal.Title></Modal.Header>
+          <Modal.Body>
+            {editingMeal && (
+              <Form onSubmit={handleUpdateMeal}>
+                <Form.Group className="mb-2" controlId="edit-meal-name">
+                  <Form.Label>Meal name</Form.Label>
+                  <Form.Control
+                    value={editingMeal.meal}
+                    onChange={(e) => setEditingMeal({ ...editingMeal, meal: e.target.value })}
+                    required
+                  />
+                </Form.Group>
+                <Form.Group className="mb-2" controlId="edit-meal-calories">
+                  <Form.Label>Calories</Form.Label>
+                  <Form.Control
+                    type="number"
+                    value={editingMeal.calories}
+                    onChange={(e) => setEditingMeal({ ...editingMeal, calories: e.target.value })}
+                    required
+                  />
+                </Form.Group>
+                <Form.Group className="mb-2" controlId="edit-meal-type">
+                  <Form.Label>Meal type</Form.Label>
+                  <Form.Select
+                    value={editingMeal.time}
+                    onChange={(e) => setEditingMeal({ ...editingMeal, time: e.target.value })}
+                  >
+                    <option>Breakfast</option>
+                    <option>Lunch</option>
+                    <option>Dinner</option>
+                    <option>Snack</option>
+                  </Form.Select>
+                </Form.Group>
+                <Form.Group className="mb-3" controlId="edit-meal-date">
+                  <Form.Label>Date</Form.Label>
+                  <Form.Control
+                    type="date"
+                    value={editingMeal.date}
+                    onChange={(e) => setEditingMeal({ ...editingMeal, date: e.target.value })}
+                    required
+                  />
+                </Form.Group>
+                <Button type="submit" size="sm" className="theme-btn-primary">Save Changes</Button>
+              </Form>
+            )}
+          </Modal.Body>
+        </Modal>
+      </Container>
+    </main>
   );
 }

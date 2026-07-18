@@ -21,12 +21,17 @@ export default function VerifyEmailPage() {
   }, [token]);
 
   return (
-    <Container className="mt-5 text-center" style={{ maxWidth: 420 }}>
-      {status === 'loading' && <Spinner animation="border" />}
-      {status !== 'loading' && (
-        <Alert variant={status === 'success' ? 'success' : 'danger'}>{message}</Alert>
-      )}
-      <Link to="/login">Go to login</Link>
-    </Container>
+    <main className="theme-page" aria-labelledby="verify-heading">
+      <Container className="mt-5 text-center" style={{ maxWidth: 420 }}>
+        <h2 id="verify-heading" className="visually-hidden">Email verification status</h2>
+        {status === 'loading' && <Spinner animation="border" role="status">
+          <span className="visually-hidden">Verifying your email...</span>
+        </Spinner>}
+        {status !== 'loading' && (
+          <Alert variant={status === 'success' ? 'success' : 'danger'}>{message}</Alert>
+        )}
+        <Link to="/login" className="theme-link">Go to login</Link>
+      </Container>
+    </main>
   );
 }
