@@ -86,12 +86,13 @@ export default function AthleteDashboard() {
 
     const stripAria = () => {
       calendarRoot.querySelectorAll('[role]').forEach((el) => el.removeAttribute('role'));
-      calendarRoot.querySelectorAll('[aria-rowindex], [aria-colindex], [aria-selected], [aria-multiselectable]')
+      calendarRoot.querySelectorAll('[aria-rowindex], [aria-colindex], [aria-selected], [aria-multiselectable], [aria-label], [aria-sort]')
         .forEach((el) => {
           el.removeAttribute('aria-rowindex');
           el.removeAttribute('aria-colindex');
           el.removeAttribute('aria-selected');
           el.removeAttribute('aria-multiselectable');
+          el.removeAttribute('aria-sort');
         });
     };
 
@@ -189,15 +190,22 @@ export default function AthleteDashboard() {
             endAccessor="end"
             onSelectEvent={handleSelectEvent}
             onRangeChange={handleRangeChange}
-            eventPropGetter={(event) => {
-              const isCoral = event.type !== 'game' && !event.resource.loggedMinutes;
-              return {
-                className: isCoral ? 'coral-event' : '',
-                style: {
-                  backgroundColor: event.type === 'game' ? '#1f4d3d' : event.resource.loggedMinutes ? '#2f8f5b' : '#ff6b4a',
-                },
-              };
-            }}
+           eventPropGetter={(event) => {
+            const isGame = event.type === 'game';
+            const isCompleted = !isGame && event.resource.loggedMinutes;
+            const isCoral = !isGame && !event.resource.loggedMinutes;
+
+            let className = '';
+            if (isCoral) className = 'coral-event';
+            if (isCompleted) className = 'completed-event';
+
+            return {
+              className,
+              style: {
+                backgroundColor: isGame ? '#1f4d3d' : isCompleted ? '#1f7a4a' : '#ff6b4a',
+              },
+            };
+          }}
           />
         </div>
 

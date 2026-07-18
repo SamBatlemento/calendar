@@ -19,7 +19,7 @@
   --navy-accent: #ffb020;
   --navy-accent-text: #0d2b45; /* text color to use ON TOP OF the accent color */
   --navy-danger: #ff6b6b;
-  --navy-success: #4ade80;
+  --navy-success: #1f7a4a;
 }
 
 /* ---------- Page-level ---------- */
@@ -264,4 +264,9 @@
 .theme-page .coral-event,
 .theme-page .coral-event .rbc-event-content {
   color: #1c1f26 !important;
+}
+
+.theme-page .completed-event,
+.theme-page .completed-event .rbc-event-content {
+  color: #ffffff !important;
 }
