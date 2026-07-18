@@ -1,5 +1,7 @@
 # Team Calendar — Mobile Edition
 
+IMPORTANT: DOWNLOAD LINK: https://expo.dev/artifacts/eas/bPY-nD2VtvMJ26ItDCAKGKdgTXf-fDsycqkJiSKzmDs.aab
+
 An Expo (React Native) client for the existing MERN backend, living alongside `web/` in this
 same repo. It talks to the exact same Express API on your droplet — no backend changes are
 required for it to work.
