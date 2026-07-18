@@ -81,11 +81,26 @@ export default function AthleteDashboard() {
   const events = [...exerciseEvents, ...gameEvents];
 
   useEffect(() => {
-    const calendarRoot = document.querySelector('.rbc-month-view');
-    if (calendarRoot) {
+    const calendarRoot = document.querySelector('.rbc-calendar');
+    if (!calendarRoot) return;
+
+    const stripAria = () => {
       calendarRoot.querySelectorAll('[role]').forEach((el) => el.removeAttribute('role'));
-    }
-  }, [events]);
+      calendarRoot.querySelectorAll('[aria-rowindex], [aria-colindex], [aria-selected], [aria-multiselectable]')
+        .forEach((el) => {
+          el.removeAttribute('aria-rowindex');
+          el.removeAttribute('aria-colindex');
+          el.removeAttribute('aria-selected');
+          el.removeAttribute('aria-multiselectable');
+        });
+    };
+
+    stripAria();
+    const observer = new MutationObserver(stripAria);
+    observer.observe(calendarRoot, { childList: true, subtree: true, attributes: true });
+
+    return () => observer.disconnect();
+  }, []);
 
   // Clicking any event scrolls down to and populates the bottom panel, instead of a modal
   const handleSelectEvent = (event) => {
