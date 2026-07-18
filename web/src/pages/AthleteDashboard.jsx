@@ -51,6 +51,11 @@ export default function AthleteDashboard() {
     getMyMeals(mealDate).then(({ data }) => setMeals(data));
   }, [mealDate]);
 
+  useEffect(() => {
+    const rows = document.querySelectorAll('.rbc-row-content[role="row"]');
+    rows.forEach((row) => row.removeAttribute('role'));
+  }, [events]);
+
   const handleRangeChange = (visibleRange) => {
     const start = Array.isArray(visibleRange) ? visibleRange[0] : visibleRange.start;
     const end = Array.isArray(visibleRange) ? visibleRange[visibleRange.length - 1] : visibleRange.end;
@@ -166,13 +171,17 @@ export default function AthleteDashboard() {
             endAccessor="end"
             onSelectEvent={handleSelectEvent}
             onRangeChange={handleRangeChange}
-            eventPropGetter={(event) => ({
-              style: {
-                backgroundColor: event.type === 'game'
-                  ? '#1f4d3d'
-                  : event.resource.loggedMinutes ? '#2f8f5b' : '#ff6b4a',
-              },
-            })}
+            eventPropGetter={(event) => {
+              const bg = event.type === 'game'
+                ? '#1f4d3d'
+                : event.resource.loggedMinutes ? '#2f8f5b' : '#ff6b4a';
+              const textColor = event.type !== 'game' && !event.resource.loggedMinutes
+                ? '#1c1f26' // dark text for the coral "not completed" events
+                : '#ffffff'; // white text for forest and green events
+              return {
+                style: { backgroundColor: bg, color: textColor },
+              };
+            }}
           />
         </div>
 
@@ -215,7 +224,7 @@ export default function AthleteDashboard() {
           <Row>
             <Col md={6}>
               <div className="theme-card mb-4">
-                <h5 className="theme-heading">Log a Meal</h5>
+                <h3 className="theme-heading">Log a Meal</h3>
                 <Form onSubmit={handleLogMeal} className="d-flex gap-2 flex-wrap mb-3">
                   <Form.Group controlId="log-meal-name" className="mb-0">
                     <Form.Label className="visually-hidden">Meal name</Form.Label>
@@ -257,7 +266,7 @@ export default function AthleteDashboard() {
                 </Form>
 
                 <div className="d-flex align-items-center gap-2 mb-3">
-                  <h5 className="theme-heading mb-0">Meals</h5>
+                  <h3 className="theme-heading mb-0">Meals</h3>
                   <Button
                     size="sm" className="theme-btn-outline"
                     aria-label="View previous day"

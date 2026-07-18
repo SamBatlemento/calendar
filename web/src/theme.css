@@ -199,3 +199,60 @@
 .theme-page .btn-close {
   filter: invert(1);
 }
+
+/* ---------- react-big-calendar overrides ---------- */
+
+.theme-page .rbc-month-view,
+.theme-page .rbc-time-view {
+  background-color: var(--navy-card);
+  border-color: var(--navy-border);
+}
+
+.theme-page .rbc-off-range-bg {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.theme-page .rbc-off-range {
+  color: var(--navy-muted);
+}
+
+.theme-page .rbc-day-bg,
+.theme-page .rbc-header,
+.theme-page .rbc-date-cell {
+  border-color: var(--navy-border);
+  color: var(--navy-text);
+}
+
+.theme-page .rbc-button-link {
+  color: var(--navy-text);
+}
+
+.theme-page .rbc-today {
+  background-color: rgba(255, 176, 32, 0.15);
+}
+
+.theme-page .rbc-toolbar button {
+  color: var(--navy-text);
+  background-color: var(--navy-card);
+  border: 1px solid var(--navy-border);
+}
+
+.theme-page .rbc-toolbar button:hover,
+.theme-page .rbc-toolbar button.rbc-active {
+  background-color: var(--navy-border);
+  color: var(--navy-text);
+}
+
+.theme-page .rbc-toolbar-label {
+  color: var(--navy-text);
+}
+
+.theme-page .rbc-show-more {
+  color: var(--navy-accent);
+  background: transparent;
+  font-weight: 600;
+}
+
+.theme-page .rbc-event-content {
+  color: #ffffff;
+}

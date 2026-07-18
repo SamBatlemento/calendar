@@ -251,7 +251,7 @@ export default function CoachDashboard() {
         <Row className="mt-4">
           <Col md={4}>
             <div className="theme-card h-100">
-              <h5 className="theme-heading">Add Team Athlete</h5>
+              <h3 className="theme-heading">Add Team Athlete</h3>
               <Form onSubmit={handleAddAthlete}>
                 <Form.Group className="mb-2" controlId="add-athlete-email">
                   <Form.Label className="visually-hidden">Athlete email</Form.Label>
@@ -267,7 +267,7 @@ export default function CoachDashboard() {
 
           <Col md={4}>
             <div className="theme-card h-100">
-              <h5 className="theme-heading">Create Exercise</h5>
+              <h3 className="theme-heading">Create Exercise</h3>
               <Form onSubmit={handleCreateExercise}>
                 <Form.Group className="mb-2" controlId="create-exercise-name">
                   <Form.Label className="visually-hidden">Exercise name</Form.Label>
@@ -301,7 +301,7 @@ export default function CoachDashboard() {
 
           <Col md={4}>
             <div className="theme-card h-100">
-              <h5 className="theme-heading">Assign Exercise</h5>
+              <h3 className="theme-heading">Assign Exercise</h3>
               <Form onSubmit={handleAssign}>
                 <Form.Group className="mb-2" controlId="assign-exercise-select">
                   <Form.Label className="visually-hidden">Exercise</Form.Label>
@@ -347,7 +347,7 @@ export default function CoachDashboard() {
         </Row>
 
         <hr className="my-4" />
-        <h5 className="theme-heading">Manage Exercises</h5>
+        <h3 className="theme-heading">Manage Exercises</h3>
         <ListGroup className="mb-3">
           {exercises.map((ex) => (
             <ListGroup.Item key={ex._id} className="d-flex justify-content-between align-items-center">
@@ -406,7 +406,7 @@ export default function CoachDashboard() {
         </Modal>
 
         <hr className="my-4" />
-        <h5 className="theme-heading">Team Progress</h5>
+        <h3 className="theme-heading">Team Progress</h3>
         <ListGroup className="mb-3">
           {teamMembers.map((m) => (
             <ListGroup.Item key={m._id} className="d-flex justify-content-between align-items-center">
@@ -426,7 +426,7 @@ export default function CoachDashboard() {
         {selectedProgressMember && (
           <div className="theme-card mb-4">
             <div className="d-flex justify-content-between align-items-center mb-2">
-              <h6 className="theme-heading mb-0">{selectedProgressMember.member.firstName}'s Assignments</h6>
+              <h4 className="theme-heading mb-0">{selectedProgressMember.member.firstName}'s Assignments</h4>
             </div>
             <ListGroup>
               {selectedProgressMember.assignments.map((a) => (
@@ -466,7 +466,7 @@ export default function CoachDashboard() {
         )}
 
         <div className="theme-card mb-4" style={{ maxWidth: 420 }}>
-          <h5 className="theme-heading">Add Game Date</h5>
+          <h3 className="theme-heading">Add Game Date</h3>
           <Form onSubmit={handleCreateGame}>
             <Form.Group className="mb-2" controlId="add-game-title">
               <Form.Label className="visually-hidden">Game title</Form.Label>
@@ -497,7 +497,7 @@ export default function CoachDashboard() {
         </div>
 
         <hr className="my-4" />
-        <h5 className="theme-heading">Manage Games</h5>
+        <h3 className="theme-heading">Manage Games</h3>
         <ListGroup className="mb-3">
           {gamesList.length === 0 && (
             <ListGroup.Item className="theme-muted">No game dates added yet.</ListGroup.Item>
