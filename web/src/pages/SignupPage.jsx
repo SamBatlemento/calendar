@@ -23,47 +23,60 @@ export default function SignupPage() {
     }
   };
 
-  if (status) return <Container className="mt-5"><Alert variant="success">{status}</Alert></Container>;
+  if (status) {
+    return (
+      <main className="theme-page" aria-labelledby="signup-status-heading">
+        <Container className="mt-5" style={{ maxWidth: 420 }}>
+          <h2 id="signup-status-heading" className="visually-hidden">Signup status</h2>
+          <Alert variant="success">{status}</Alert>
+        </Container>
+      </main>
+    );
+  }
 
   return (
-    <Container className="mt-5" style={{ maxWidth: 420 }}>
-      <h2 className="mb-4">Create your account</h2>
-      {error && <Alert variant="danger">{error}</Alert>}
-      <Form onSubmit={handleSubmit}>
-        <Form.Group className="mb-3">
-          <Form.Label>First Name</Form.Label>
-          <Form.Control name="firstName" value={form.firstName} onChange={handleChange} required />
-        </Form.Group>
-        <Form.Group className="mb-3">
-          <Form.Label>Last Name</Form.Label>
-          <Form.Control name="lastName" value={form.lastName} onChange={handleChange} required />
-        </Form.Group>
-        <Form.Group className="mb-3">
-          <Form.Label>Email</Form.Label>
-          <Form.Control type="email" name="email" value={form.email} onChange={handleChange} required />
-        </Form.Group>
-        <Form.Group className="mb-3">
-          <Form.Label>Password</Form.Label>
-          <Form.Control type="password" name="password" value={form.password} onChange={handleChange} required minLength={8} />
-        </Form.Group>
-        <Form.Group className="mb-4">
-          <Form.Label>I am a...</Form.Label>
-          <div>
-            <Form.Check
-              inline label="Coach" type="radio" name="role" value="Coach"
-              checked={form.role === 'Coach'} onChange={handleChange}
-            />
-            <Form.Check
-              inline label="Team Athlete" type="radio" name="role" value="Athlete"
-              checked={form.role === 'Athlete'} onChange={handleChange}
-            />
+    <main className="theme-page" aria-labelledby="signup-heading">
+      <Container style={{ maxWidth: 420 }}>
+        <div className="theme-card">
+          <h2 id="signup-heading" className="theme-heading mb-4">Create your account</h2>
+          {error && <Alert variant="danger">{error}</Alert>}
+          <Form onSubmit={handleSubmit}>
+            <Form.Group className="mb-3" controlId="signup-firstName">
+              <Form.Label>First Name</Form.Label>
+              <Form.Control name="firstName" value={form.firstName} onChange={handleChange} required />
+            </Form.Group>
+            <Form.Group className="mb-3" controlId="signup-lastName">
+              <Form.Label>Last Name</Form.Label>
+              <Form.Control name="lastName" value={form.lastName} onChange={handleChange} required />
+            </Form.Group>
+            <Form.Group className="mb-3" controlId="signup-email">
+              <Form.Label>Email</Form.Label>
+              <Form.Control type="email" name="email" value={form.email} onChange={handleChange} required />
+            </Form.Group>
+            <Form.Group className="mb-3" controlId="signup-password">
+              <Form.Label>Password</Form.Label>
+              <Form.Control type="password" name="password" value={form.password} onChange={handleChange} required minLength={8} />
+            </Form.Group>
+            <Form.Group className="mb-4">
+              <Form.Label id="role-group-label">I am a...</Form.Label>
+              <div role="radiogroup" aria-labelledby="role-group-label">
+                <Form.Check
+                  inline label="Coach" type="radio" name="role" id="signup-role-coach" value="Coach"
+                  checked={form.role === 'Coach'} onChange={handleChange}
+                />
+                <Form.Check
+                  inline label="Team Athlete" type="radio" name="role" id="signup-role-athlete" value="Athlete"
+                  checked={form.role === 'Athlete'} onChange={handleChange}
+                />
+              </div>
+            </Form.Group>
+            <Button type="submit" className="w-100 theme-btn-primary">Sign Up</Button>
+          </Form>
+          <div className="text-center mt-3 theme-muted">
+            Already have an account? <Link to="/login" className="theme-link">Log in</Link>
           </div>
-        </Form.Group>
-        <Button type="submit" className="w-100">Sign Up</Button>
-      </Form>
-      <div className="text-center mt-3">
-        Already have an account? <Link to="/login">Log in</Link>
-      </div>
-    </Container>
+        </div>
+      </Container>
+    </main>
   );
 }

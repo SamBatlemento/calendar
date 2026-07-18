@@ -1,0 +1,201 @@
+/* =========================================================
+   Navy & Amber theme — global stylesheet
+   Import this ONCE in web/src/main.jsx, above the Bootstrap import:
+
+     import './theme.css';
+     import 'bootstrap/dist/css/bootstrap.min.css';
+
+   (theme.css first so Bootstrap's own utility classes can still
+   override where needed, but our component classes below win
+   because they're more specific than Bootstrap's base styles.)
+   ========================================================= */
+
+:root {
+  --navy-bg: #0d2b45;
+  --navy-card: #123152;
+  --navy-border: #1e4269;
+  --navy-text: #ffffff;
+  --navy-muted: #a9c2d8;
+  --navy-accent: #ffb020;
+  --navy-accent-text: #0d2b45; /* text color to use ON TOP OF the accent color */
+  --navy-danger: #ff6b6b;
+  --navy-success: #4ade80;
+}
+
+/* ---------- Page-level ---------- */
+
+.theme-page {
+  min-height: 100vh;
+  background-color: var(--navy-bg);
+  padding-top: 3rem;
+  padding-bottom: 3rem;
+}
+
+/* ---------- Card / panel surface ---------- */
+
+.theme-card {
+  background-color: var(--navy-card);
+  border: 1px solid var(--navy-border);
+  border-radius: 12px;
+  padding: 2rem;
+}
+
+/* ---------- Typography ---------- */
+
+.theme-heading {
+  color: var(--navy-text);
+}
+
+.theme-label {
+  color: var(--navy-muted);
+}
+
+.theme-muted {
+  color: var(--navy-muted);
+}
+
+.theme-link {
+  color: var(--navy-accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.theme-link:hover {
+  color: var(--navy-accent);
+  text-decoration: underline;
+}
+
+/* ---------- Form controls (overrides react-bootstrap's Form.Control) ---------- */
+
+.theme-page .form-control,
+.theme-page .form-select {
+  background-color: var(--navy-bg);
+  color: var(--navy-text);
+  border: 1px solid var(--navy-border);
+}
+
+.theme-page .form-control:focus,
+.theme-page .form-select:focus {
+  background-color: var(--navy-bg);
+  color: var(--navy-text);
+  border-color: var(--navy-accent);
+  box-shadow: 0 0 0 0.2rem rgba(255, 176, 32, 0.25);
+}
+
+.theme-page .form-control::placeholder {
+  color: var(--navy-muted);
+  opacity: 0.7;
+}
+
+.theme-page .form-label {
+  color: var(--navy-muted);
+}
+
+.theme-page .form-check-label {
+  color: var(--navy-text);
+}
+
+.theme-page .form-check-input:checked {
+  background-color: var(--navy-accent);
+  border-color: var(--navy-accent);
+}
+
+/* ---------- Buttons ---------- */
+
+.theme-btn-primary {
+  background-color: var(--navy-accent);
+  border-color: var(--navy-accent);
+  color: var(--navy-accent-text);
+  font-weight: 700;
+}
+
+.theme-btn-primary:hover,
+.theme-btn-primary:focus,
+.theme-btn-primary:active {
+  background-color: #ffc04d !important; /* slightly lighter amber on hover */
+  border-color: #ffc04d !important;
+  color: var(--navy-accent-text) !important;
+}
+
+.theme-btn-outline {
+  background-color: transparent;
+  border: 1px solid var(--navy-border);
+  color: var(--navy-text);
+}
+
+.theme-btn-outline:hover,
+.theme-btn-outline:focus {
+  background-color: var(--navy-border) !important;
+  border-color: var(--navy-border) !important;
+  color: var(--navy-text) !important;
+}
+
+.theme-btn-danger {
+  background-color: transparent;
+  border: 1px solid var(--navy-danger);
+  color: var(--navy-danger);
+}
+
+.theme-btn-danger:hover,
+.theme-btn-danger:focus {
+  background-color: var(--navy-danger) !important;
+  border-color: var(--navy-danger) !important;
+  color: var(--navy-bg) !important;
+}
+
+/* ---------- Alerts (overrides react-bootstrap's default Alert colors) ---------- */
+
+.theme-page .alert-danger {
+  background-color: rgba(255, 107, 107, 0.15);
+  border-color: var(--navy-danger);
+  color: #ffb3b3;
+}
+
+.theme-page .alert-success {
+  background-color: rgba(74, 222, 128, 0.15);
+  border-color: var(--navy-success);
+  color: #b6f5c9;
+}
+
+.theme-page .alert-info {
+  background-color: rgba(169, 194, 216, 0.15);
+  border-color: var(--navy-border);
+  color: var(--navy-muted);
+}
+
+/* ---------- List groups (used in dashboards) ---------- */
+
+.theme-page .list-group-item {
+  background-color: var(--navy-card);
+  border-color: var(--navy-border);
+  color: var(--navy-text);
+}
+
+/* ---------- Badges ---------- */
+
+.theme-page .badge.bg-secondary {
+  background-color: var(--navy-border) !important;
+  color: var(--navy-muted);
+}
+
+.theme-page .badge.bg-success {
+  background-color: var(--navy-success) !important;
+  color: var(--navy-bg);
+}
+
+/* ---------- Modals ---------- */
+
+.theme-page .modal-content {
+  background-color: var(--navy-card);
+  border: 1px solid var(--navy-border);
+  color: var(--navy-text);
+}
+
+.theme-page .modal-header,
+.theme-page .modal-footer {
+  border-color: var(--navy-border);
+}
+
+.theme-page .btn-close {
+  filter: invert(1);
+}
