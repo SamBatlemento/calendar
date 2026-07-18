@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Container, Form, Button, Row, Col, Alert, ListGroup, Badge, Modal } from 'react-bootstrap';
 import { createExercise, assignExercise, addTeamAthlete, getExercises, getTeamMembers, 
   getAssignmentsForMember, updateExercise, deleteExercise, removeTeamMember, updateAssignmentDueDate, 
-  deleteAssignment, bulkAssignExercise, createGame } from '../api/assignments';
+  deleteAssignment, bulkAssignExercise, createGame, updateGame, deleteGame, getGames } from '../api/assignments';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import dayjs from 'dayjs';
@@ -20,6 +20,8 @@ export default function CoachDashboard() {
   const [editingExercise, setEditingExercise] = useState(null);
   const [editingDueDate, setEditingDueDate] = useState({});
   const [games, setGame] = useState({ title: '', location: '', date: '' });
+  const [gamesList, setGamesList] = useState([]);
+  const [editingGame, setEditingGame] = useState(null);
   
   const handleLogout = () => {
   logout();
@@ -41,6 +43,7 @@ export default function CoachDashboard() {
 
   useEffect(() => {
     loadDropdownData();
+    loadGames();
   }, []);
 
   const handleCreateExercise = async (e) => {
@@ -189,6 +192,7 @@ export default function CoachDashboard() {
       await createGame({ ...games, date: parseLocalDate(games.date).toISOString() });
       setMsg('Game date added.');
       setGame({ title: '', location: '', date: '' });
+      loadGames();
     } catch (err) {
       setMsg(err.response?.data?.error || 'Failed to add game date.');
     }
@@ -199,6 +203,42 @@ export default function CoachDashboard() {
     const datePart = typeof dateInput === 'string' ? dateInput.split('T')[0] : dayjs(dateInput).format('YYYY-MM-DD');
     return new Date(`${datePart}T00:00:00`);
   }
+
+  const loadGames = async () => {
+    try {
+      const { data } = await getGames();
+      setGamesList(data);
+    } catch (err) {
+      setMsg(err.response?.data?.error || 'Failed loading games.');
+    }
+  };
+
+  const handleUpdateGame = async (e) => {
+    e.preventDefault();
+    try {
+      await updateGame(editingGame._id, {
+        title: editingGame.title,
+        location: editingGame.location,
+        date: parseLocalDate(editingGame.date).toISOString(),
+      });
+      setMsg('Game updated.');
+      setEditingGame(null);
+      loadGames();
+    } catch (err) {
+      setMsg(err.response?.data?.error || 'Failed to update game.');
+    }
+  };
+
+  const handleDeleteGame = async (id) => {
+    if (!window.confirm('Delete this game date?')) return;
+    try {
+      await deleteGame(id);
+      setMsg('Game deleted.');
+      loadGames();
+    } catch (err) {
+      setMsg(err.response?.data?.error || 'Failed to delete game.');
+    }
+  };
 
   return (
     <Container className="mt-4">
@@ -412,6 +452,69 @@ export default function CoachDashboard() {
           <Button type="submit" size="sm">Add Game</Button>
         </Form>
       </Col>
+
+      <hr className="my-4" />
+      <h5>Manage Games</h5>
+      <ListGroup className="mb-3">
+        {gamesList.length === 0 && (
+          <ListGroup.Item className="text-muted">No game dates added yet.</ListGroup.Item>
+        )}
+        {gamesList.map((g) => (
+          <ListGroup.Item key={g._id} className="d-flex justify-content-between align-items-center">
+            <div>
+              <strong>{g.title}</strong>
+              <span className="text-muted ms-2">{parseLocalDate(g.date).toLocaleDateString()}</span>
+              {g.location && <span className="text-muted ms-2">— {g.location}</span>}
+            </div>
+            <div className="d-flex gap-2">
+              <Button size="sm" variant="outline-secondary" onClick={() => setEditingGame({
+                ...g,
+                date: g.date.split('T')[0], // format for the date input
+              })}>
+                Edit
+              </Button>
+              <Button size="sm" variant="outline-danger" onClick={() => handleDeleteGame(g._id)}>
+                Delete
+              </Button>
+            </div>
+          </ListGroup.Item>
+        ))}
+      </ListGroup>
+
+      <Modal show={!!editingGame} onHide={() => setEditingGame(null)}>
+        <Modal.Header closeButton><Modal.Title>Edit Game</Modal.Title></Modal.Header>
+        <Modal.Body>
+          {editingGame && (
+            <Form onSubmit={handleUpdateGame}>
+              <Form.Group className="mb-2">
+                <Form.Label>Title</Form.Label>
+                <Form.Control
+                  value={editingGame.title}
+                  onChange={(e) => setEditingGame({ ...editingGame, title: e.target.value })}
+                  required
+                />
+              </Form.Group>
+              <Form.Group className="mb-2">
+                <Form.Label>Location</Form.Label>
+                <Form.Control
+                  value={editingGame.location || ''}
+                  onChange={(e) => setEditingGame({ ...editingGame, location: e.target.value })}
+                />
+              </Form.Group>
+              <Form.Group className="mb-3">
+                <Form.Label>Date</Form.Label>
+                <Form.Control
+                  type="date"
+                  value={editingGame.date}
+                  onChange={(e) => setEditingGame({ ...editingGame, date: e.target.value })}
+                  required
+                />
+              </Form.Group>
+              <Button type="submit" size="sm">Save Changes</Button>
+            </Form>
+          )}
+        </Modal.Body>
+      </Modal>
 
       <Button variant="outline-secondary" size="sm" onClick={handleLogout}>Sign Out</Button>
     </Container>
