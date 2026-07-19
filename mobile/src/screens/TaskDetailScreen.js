@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { View, Text, TextInput, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
 import dayjs from 'dayjs';
 import { logExerciseTime } from '../api/assignments';
+import { colors, shared } from '../theme';
+import Banner from '../components/Banner';
 
 export default function TaskDetailScreen({ route, navigation }) {
   const { assignment } = route.params;
@@ -42,10 +44,11 @@ export default function TaskDetailScreen({ route, navigation }) {
         </View>
       ) : (
         <>
-          {error && <Text style={styles.error}>{error}</Text>}
-          <Text style={styles.label}>Minutes completed</Text>
+          <Banner variant="danger">{error}</Banner>
+          <Text style={shared.label}>Minutes completed</Text>
           <TextInput
             style={styles.input}
+            placeholderTextColor={colors.muted}
             keyboardType="number-pad"
             value={minutes}
             onChangeText={setMinutes}
@@ -57,7 +60,11 @@ export default function TaskDetailScreen({ route, navigation }) {
             onPress={handleSubmit}
             disabled={!minutes || saving}
           >
-            {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Mark Complete</Text>}
+            {saving ? (
+              <ActivityIndicator color={colors.accentText} />
+            ) : (
+              <Text style={styles.buttonText}>Mark Complete</Text>
+            )}
           </Pressable>
         </>
       )}
@@ -66,24 +73,22 @@ export default function TaskDetailScreen({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 24, backgroundColor: '#fff' },
-  title: { fontSize: 22, fontWeight: '800', color: '#222' },
-  due: { fontSize: 14, color: '#666', marginTop: 4, marginBottom: 16 },
-  description: { fontSize: 15, color: '#333', marginBottom: 8, lineHeight: 21 },
-  target: { fontSize: 13, color: '#888', marginBottom: 24 },
-  label: { fontSize: 14, fontWeight: '600', color: '#333', marginBottom: 6 },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 10,
-    padding: 14,
-    fontSize: 18,
-    marginBottom: 16,
-  },
-  button: { backgroundColor: '#1f4d3d', borderRadius: 10, padding: 16, alignItems: 'center' },
+  container: { ...shared.page, padding: 24 },
+  title: { fontSize: 22, fontWeight: '800', color: colors.text },
+  due: { fontSize: 14, color: colors.muted, marginTop: 4, marginBottom: 16 },
+  description: { fontSize: 15, color: colors.text, marginBottom: 8, lineHeight: 21 },
+  target: { fontSize: 13, color: colors.muted, marginBottom: 24 },
+  input: { ...shared.input, fontSize: 18, marginBottom: 16 },
+  button: shared.buttonPrimary,
   buttonDisabled: { opacity: 0.5 },
-  buttonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
-  error: { color: '#c0392b', marginBottom: 12 },
-  doneBox: { backgroundColor: '#f2fbf6', borderRadius: 10, padding: 16, marginTop: 12 },
-  doneText: { color: '#2f8f5b', fontWeight: '700', fontSize: 16 },
+  buttonText: shared.buttonPrimaryText,
+  doneBox: {
+    backgroundColor: colors.successBg,
+    borderWidth: 1,
+    borderColor: colors.success,
+    borderRadius: 10,
+    padding: 16,
+    marginTop: 12,
+  },
+  doneText: { color: colors.successText, fontWeight: '700', fontSize: 16 },
 });

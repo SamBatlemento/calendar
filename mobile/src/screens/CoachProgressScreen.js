@@ -8,6 +8,8 @@ import {
   deleteAssignment,
 } from '../api/assignments';
 import IdChip from '../components/IdChip';
+import { colors, shared } from '../theme';
+import Banner from '../components/Banner';
 
 export default function CoachProgressScreen() {
   const [teamMembers, setTeamMembers] = useState([]);
@@ -66,7 +68,9 @@ export default function CoachProgressScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>Team Progress</Text>
-      {msg && <Text style={styles.msg}>{msg}</Text>}
+      <View style={styles.bannerWrap}>
+        <Banner variant="danger">{msg}</Banner>
+      </View>
 
       <FlatList
         data={teamMembers}
@@ -114,9 +118,9 @@ export default function CoachProgressScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff', paddingTop: 16 },
-  heading: { fontSize: 22, fontWeight: '800', color: '#222', marginHorizontal: 20, marginBottom: 12 },
-  msg: { color: '#c0392b', marginHorizontal: 20, marginBottom: 8 },
+  container: { ...shared.page, paddingTop: 16 },
+  heading: { ...shared.heading, marginHorizontal: 20, marginBottom: 12 },
+  bannerWrap: { marginHorizontal: 20 },
   memberRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -124,21 +128,21 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: colors.border,
   },
-  memberName: { fontSize: 16, fontWeight: '600', color: '#222' },
-  memberToggle: { color: '#1f4d3d', fontWeight: '600' },
-  assignmentList: { backgroundColor: '#f7f8f7', paddingHorizontal: 20, paddingVertical: 8 },
+  memberName: { fontSize: 16, fontWeight: '600', color: colors.text },
+  memberToggle: { color: colors.accent, fontWeight: '600' },
+  assignmentList: { backgroundColor: colors.card, paddingHorizontal: 20, paddingVertical: 8 },
   assignmentRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#e5e5e5',
+    borderBottomColor: colors.border,
   },
-  exerciseName: { fontSize: 14, fontWeight: '600', color: '#222' },
-  dueDate: { fontSize: 12, color: '#666', marginTop: 2, marginBottom: 6 },
-  deleteText: { color: '#c0392b', fontWeight: '600', fontSize: 13, marginLeft: 12 },
-  empty: { color: '#888', paddingVertical: 12 },
+  exerciseName: { fontSize: 14, fontWeight: '600', color: colors.text },
+  dueDate: { fontSize: 12, color: colors.muted, marginTop: 2, marginBottom: 6 },
+  deleteText: { color: colors.danger, fontWeight: '600', fontSize: 13, marginLeft: 12 },
+  empty: { color: colors.muted, paddingVertical: 12 },
 });

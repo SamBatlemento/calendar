@@ -1,8 +1,10 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { View, Text, FlatList, StyleSheet, Pressable, RefreshControl } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { getMyAssignments } from '../api/assignments';
 import TaskCard from '../components/TaskCard';
+import { colors, shared, radii } from '../theme';
+import Banner from '../components/Banner';
 
 const FILTERS = [
   { key: 'today', label: 'Today' },
@@ -56,13 +58,17 @@ export default function AthleteTasksScreen({ navigation }) {
         ))}
       </View>
 
-      {error && <Text style={styles.error}>{error}</Text>}
+      <View style={styles.bannerWrap}>
+        <Banner variant="danger">{error}</Banner>
+      </View>
 
       <FlatList
         data={assignments}
         keyExtractor={(item) => item._id}
         contentContainerStyle={{ paddingVertical: 8 }}
-        refreshControl={<RefreshControl refreshing={loading} onRefresh={load} />}
+        refreshControl={
+          <RefreshControl refreshing={loading} onRefresh={load} tintColor={colors.accent} />
+        }
         ListEmptyComponent={
           !loading && (
             <Text style={styles.empty}>Nothing due {filter === 'all' ? '' : filter}. Nice work!</Text>
@@ -80,18 +86,20 @@ export default function AthleteTasksScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f7f8f7' },
+  container: shared.page,
+  bannerWrap: { paddingHorizontal: 16 },
   segmented: {
     flexDirection: 'row',
     margin: 16,
-    backgroundColor: '#eee',
-    borderRadius: 10,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.control,
     padding: 4,
   },
-  segment: { flex: 1, paddingVertical: 8, borderRadius: 8, alignItems: 'center' },
-  segmentActive: { backgroundColor: '#1f4d3d' },
-  segmentText: { color: '#555', fontWeight: '600', fontSize: 13 },
-  segmentTextActive: { color: '#fff' },
-  error: { color: '#c0392b', textAlign: 'center', marginBottom: 8 },
-  empty: { textAlign: 'center', color: '#888', marginTop: 40 },
+  segment: { flex: 1, paddingVertical: 8, borderRadius: radii.pill, alignItems: 'center' },
+  segmentActive: { backgroundColor: colors.accent },
+  segmentText: { color: colors.muted, fontWeight: '600', fontSize: 13 },
+  segmentTextActive: { color: colors.accentText },
+  empty: { textAlign: 'center', color: colors.muted, marginTop: 40 },
 });

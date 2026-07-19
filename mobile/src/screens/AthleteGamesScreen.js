@@ -3,6 +3,8 @@ import { View, Text, FlatList, StyleSheet, RefreshControl } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import dayjs from 'dayjs';
 import { getGames } from '../api/assignments';
+import { colors, shared, radii } from '../theme';
+import Banner from '../components/Banner';
 
 export default function AthleteGamesScreen() {
   const [games, setGames] = useState([]);
@@ -32,12 +34,16 @@ export default function AthleteGamesScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>Games</Text>
-      {error && <Text style={styles.error}>{error}</Text>}
+      <View style={styles.bannerWrap}>
+        <Banner variant="danger">{error}</Banner>
+      </View>
       <FlatList
         data={games}
         keyExtractor={(g) => g._id}
         contentContainerStyle={{ paddingBottom: 20 }}
-        refreshControl={<RefreshControl refreshing={loading} onRefresh={load} />}
+        refreshControl={
+          <RefreshControl refreshing={loading} onRefresh={load} tintColor={colors.accent} />
+        }
         ListEmptyComponent={!loading && <Text style={styles.empty}>No games scheduled yet.</Text>}
         renderItem={({ item }) => (
           <View style={styles.card}>
@@ -52,22 +58,19 @@ export default function AthleteGamesScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f7f8f7' },
-  heading: { fontSize: 22, fontWeight: '800', color: '#222', marginHorizontal: 20, marginTop: 16, marginBottom: 8 },
-  error: { color: '#c0392b', marginHorizontal: 20, marginBottom: 8 },
+  container: shared.page,
+  heading: { fontSize: 22, fontWeight: '800', color: colors.text, marginHorizontal: 20, marginTop: 16, marginBottom: 8 },
+  bannerWrap: { marginHorizontal: 20 },
   card: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.card,
     padding: 16,
     marginVertical: 6,
     marginHorizontal: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
   },
-  title: { fontSize: 16, fontWeight: '700', color: '#1f4d3d' },
-  detail: { fontSize: 13, color: '#666', marginTop: 4 },
-  empty: { textAlign: 'center', color: '#888', marginTop: 40 },
+  title: { fontSize: 16, fontWeight: '700', color: colors.accent },
+  detail: { fontSize: 13, color: colors.muted, marginTop: 4 },
+  empty: { textAlign: 'center', color: colors.muted, marginTop: 40 },
 });

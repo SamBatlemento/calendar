@@ -6,6 +6,8 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import dayjs from 'dayjs';
 import { getExercises, getTeamMembers, assignExercise, bulkAssignExercise } from '../api/assignments';
 import IdChip from '../components/IdChip';
+import { colors, shared } from '../theme';
+import Banner from '../components/Banner';
 
 export default function CoachAssignScreen() {
   const [exercises, setExercises] = useState([]);
@@ -87,7 +89,7 @@ export default function CoachAssignScreen() {
     <ScrollView style={styles.container} contentContainerStyle={{ padding: 20 }}>
       <Text style={styles.heading}>Assign Exercise</Text>
 
-      {msg && <Text style={styles.msg}>{msg}</Text>}
+      <Banner variant="info">{msg}</Banner>
       {lastAssignmentId && (
         <View style={styles.confirmBox}>
           <Text style={styles.confirmLabel}>New assignment created:</Text>
@@ -95,25 +97,25 @@ export default function CoachAssignScreen() {
         </View>
       )}
 
-      <Text style={styles.label}>Exercise</Text>
+      <Text style={shared.label}>Exercise</Text>
       <View style={styles.pickerWrap}>
-        <Picker selectedValue={exerciseId} onValueChange={setExerciseId}>
+        <Picker selectedValue={exerciseId} onValueChange={setExerciseId} style={styles.picker} dropdownIconColor={colors.text}>
           {exercises.map((ex) => (
             <Picker.Item key={ex._id} label={ex.name} value={ex._id} />
           ))}
         </Picker>
       </View>
 
-      <Text style={styles.label}>Athlete</Text>
+      <Text style={shared.label}>Athlete</Text>
       <View style={styles.pickerWrap}>
-        <Picker selectedValue={athleteId} onValueChange={setAthleteId}>
+        <Picker selectedValue={athleteId} onValueChange={setAthleteId} style={styles.picker} dropdownIconColor={colors.text}>
           {teamMembers.map((m) => (
             <Picker.Item key={m._id} label={`${m.firstName} ${m.lastName}`} value={m._id} />
           ))}
         </Picker>
       </View>
 
-      <Text style={styles.label}>Due Date</Text>
+      <Text style={shared.label}>Due Date</Text>
       <Pressable style={styles.dateButton} onPress={() => setShowPicker(true)}>
         <Text style={styles.dateButtonText}>{dayjs(dueDate).format('dddd, MMMM D, YYYY')}</Text>
       </Pressable>
@@ -139,24 +141,29 @@ export default function CoachAssignScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  heading: { fontSize: 22, fontWeight: '800', marginBottom: 16, color: '#222' },
-  label: { fontSize: 13, fontWeight: '600', color: '#555', marginTop: 12, marginBottom: 4 },
-  pickerWrap: { borderWidth: 1, borderColor: '#ddd', borderRadius: 10 },
-  dateButton: { borderWidth: 1, borderColor: '#ddd', borderRadius: 10, padding: 14 },
-  dateButtonText: { fontSize: 15, color: '#222' },
-  button: { backgroundColor: '#1f4d3d', borderRadius: 10, padding: 16, alignItems: 'center', marginTop: 24 },
-  buttonText: { color: '#fff', fontWeight: '700' },
-  buttonOutline: {
+  container: shared.page,
+  heading: { ...shared.heading, marginBottom: 16 },
+  pickerWrap: {
     borderWidth: 1,
-    borderColor: '#1f4d3d',
+    borderColor: colors.border,
     borderRadius: 10,
-    padding: 16,
-    alignItems: 'center',
-    marginTop: 10,
+    backgroundColor: colors.bg,
+    overflow: 'hidden',
   },
-  buttonOutlineText: { color: '#1f4d3d', fontWeight: '700' },
-  msg: { color: '#1f4d3d', marginBottom: 10, fontWeight: '600' },
-  confirmBox: { backgroundColor: '#f2fbf6', borderRadius: 10, padding: 12, marginBottom: 16 },
-  confirmLabel: { fontSize: 12, color: '#2f8f5b', marginBottom: 4, fontWeight: '600' },
+  picker: { color: colors.text },
+  dateButton: { ...shared.input, padding: 14 },
+  dateButtonText: { fontSize: 15, color: colors.text },
+  button: { ...shared.buttonPrimary, marginTop: 24 },
+  buttonText: shared.buttonPrimaryText,
+  buttonOutline: { ...shared.buttonOutline, marginTop: 10 },
+  buttonOutlineText: shared.buttonOutlineText,
+  confirmBox: {
+    backgroundColor: colors.successBg,
+    borderWidth: 1,
+    borderColor: colors.success,
+    borderRadius: 10,
+    padding: 12,
+    marginBottom: 16,
+  },
+  confirmLabel: { fontSize: 12, color: colors.successText, marginBottom: 4, fontWeight: '600' },
 });

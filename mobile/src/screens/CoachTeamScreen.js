@@ -2,6 +2,8 @@ import { useCallback, useState } from 'react';
 import { View, Text, TextInput, FlatList, Pressable, StyleSheet, Alert, ActivityIndicator } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { getTeamMembers, addTeamAthlete, removeTeamMember } from '../api/assignments';
+import { colors, shared } from '../theme';
+import Banner from '../components/Banner';
 
 export default function CoachTeamScreen() {
   const [members, setMembers] = useState([]);
@@ -69,18 +71,19 @@ export default function CoachTeamScreen() {
         <TextInput
           style={styles.input}
           placeholder="athlete@email.com"
+          placeholderTextColor={colors.muted}
           autoCapitalize="none"
           keyboardType="email-address"
           value={email}
           onChangeText={setEmail}
         />
         <Pressable style={styles.addButton} onPress={handleAdd} disabled={adding}>
-          {adding ? <ActivityIndicator color="#fff" /> : <Text style={styles.addButtonText}>Add</Text>}
+          {adding ? <ActivityIndicator color={colors.accentText} /> : <Text style={styles.addButtonText}>Add</Text>}
         </Pressable>
       </View>
 
-      {error && <Text style={styles.error}>{error}</Text>}
-      {msg && <Text style={styles.msg}>{msg}</Text>}
+      <Banner variant="danger">{error}</Banner>
+      <Banner variant="success">{msg}</Banner>
 
       <FlatList
         data={members}
@@ -105,30 +108,28 @@ export default function CoachTeamScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff', padding: 20 },
-  heading: { fontSize: 22, fontWeight: '800', color: '#222', marginBottom: 16 },
+  container: { ...shared.page, padding: 20 },
+  heading: { ...shared.heading, marginBottom: 16 },
   addRow: { flexDirection: 'row', gap: 8, marginBottom: 12 },
-  input: { flex: 1, borderWidth: 1, borderColor: '#ddd', borderRadius: 10, padding: 12, fontSize: 15 },
+  input: { ...shared.input, flex: 1, padding: 12 },
   addButton: {
-    backgroundColor: '#1f4d3d',
+    backgroundColor: colors.accent,
     borderRadius: 10,
     paddingHorizontal: 18,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  addButtonText: { color: '#fff', fontWeight: '700' },
-  error: { color: '#c0392b', marginBottom: 8 },
-  msg: { color: '#2f8f5b', marginBottom: 8, fontWeight: '600' },
+  addButtonText: { color: colors.accentText, fontWeight: '700' },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: colors.border,
   },
-  name: { fontSize: 15, fontWeight: '600', color: '#222' },
-  email: { fontSize: 12, color: '#888', marginTop: 2 },
-  removeText: { color: '#c0392b', fontWeight: '600' },
-  empty: { color: '#888', textAlign: 'center', marginTop: 30 },
+  name: { fontSize: 15, fontWeight: '600', color: colors.text },
+  email: { fontSize: 12, color: colors.muted, marginTop: 2 },
+  removeText: { color: colors.danger, fontWeight: '600' },
+  empty: { color: colors.muted, textAlign: 'center', marginTop: 30 },
 });

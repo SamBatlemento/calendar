@@ -1,5 +1,6 @@
 import { Pressable, View, Text, StyleSheet } from 'react-native';
 import dayjs from 'dayjs';
+import { colors, radii } from '../theme';
 
 export default function TaskCard({ assignment, onPress }) {
   const done = !!assignment.loggedMinutes;
@@ -21,7 +22,9 @@ export default function TaskCard({ assignment, onPress }) {
       </View>
 
       <View style={[styles.badge, done ? styles.badgeDone : styles.badgeOpen]}>
-        <Text style={styles.badgeText}>{done ? '✓ Done' : 'Log time'}</Text>
+        <Text style={[styles.badgeText, done ? styles.badgeTextDone : styles.badgeTextOpen]}>
+          {done ? '✓ Done' : 'Log time'}
+        </Text>
       </View>
     </Pressable>
   );
@@ -31,20 +34,18 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 12,
+    backgroundColor: colors.card,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radii.card,
     padding: 16,
     marginVertical: 6,
     marginHorizontal: 16,
-    shadowColor: '#000',
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
-    shadowOffset: { width: 0, height: 2 },
-    elevation: 2,
     minHeight: 72, // comfortably tappable target, unlike a calendar day cell
   },
   cardDone: {
-    backgroundColor: '#f2fbf6',
+    backgroundColor: colors.successBg,
+    borderColor: colors.success,
   },
   cardPressed: {
     opacity: 0.7,
@@ -52,32 +53,37 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#222',
+    color: colors.text,
   },
   due: {
     fontSize: 13,
-    color: '#666',
+    color: colors.muted,
     marginTop: 2,
   },
   loggedText: {
     fontSize: 13,
-    color: '#2f8f5b',
+    color: colors.successText,
     marginTop: 2,
   },
   badge: {
-    borderRadius: 8,
+    borderRadius: radii.pill,
     paddingVertical: 8,
     paddingHorizontal: 12,
   },
   badgeOpen: {
-    backgroundColor: '#ff6b4a',
+    backgroundColor: colors.accent,
   },
   badgeDone: {
-    backgroundColor: '#2f8f5b',
+    backgroundColor: colors.success,
   },
   badgeText: {
-    color: '#fff',
     fontWeight: '700',
     fontSize: 12,
+  },
+  badgeTextOpen: {
+    color: colors.accentText,
+  },
+  badgeTextDone: {
+    color: colors.text,
   },
 });

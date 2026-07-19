@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { View, Text, TextInput, Pressable, StyleSheet, ActivityIndicator } from 'react-native';
 import { resetPassword } from '../api/auth';
+import { colors, shared } from '../theme';
+import Banner from '../components/Banner';
 
 // The reset email links to CLIENT_URL/reset-password/<token> (the web app), since this mobile
 // app doesn't have a deep link registered for that URL yet. The token is the last part of that
@@ -29,48 +31,55 @@ export default function ResetPasswordScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Set New Password</Text>
-      <Text style={styles.subtitle}>
-        Paste the token from the end of your reset link (the part after /reset-password/).
-      </Text>
+    <View style={styles.page}>
+      <View style={styles.card}>
+        <Text style={styles.title}>Set New Password</Text>
+        <Text style={styles.subtitle}>
+          Paste the token from the end of your reset link (the part after /reset-password/).
+        </Text>
 
-      {error && <Text style={styles.error}>{error}</Text>}
-      {msg && <Text style={styles.success}>{msg}</Text>}
+        <Banner variant="danger">{error}</Banner>
+        <Banner variant="success">{msg}</Banner>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Reset token"
-        autoCapitalize="none"
-        value={token}
-        onChangeText={setToken}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="New password"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-      <Pressable style={styles.button} onPress={handleSubmit} disabled={loading}>
-        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.buttonText}>Reset Password</Text>}
-      </Pressable>
+        <Text style={shared.label}>Reset token</Text>
+        <TextInput
+          style={styles.input}
+          placeholderTextColor={colors.muted}
+          autoCapitalize="none"
+          value={token}
+          onChangeText={setToken}
+        />
+        <Text style={shared.label}>New password</Text>
+        <TextInput
+          style={styles.input}
+          placeholderTextColor={colors.muted}
+          secureTextEntry
+          value={password}
+          onChangeText={setPassword}
+        />
+        <Pressable style={styles.button} onPress={handleSubmit} disabled={loading}>
+          {loading ? (
+            <ActivityIndicator color={colors.accentText} />
+          ) : (
+            <Text style={styles.buttonText}>Reset Password</Text>
+          )}
+        </Pressable>
 
-      <Pressable onPress={() => navigation.navigate('Login')}>
-        <Text style={styles.link}>Back to sign in</Text>
-      </Pressable>
+        <Pressable onPress={() => navigation.navigate('Login')}>
+          <Text style={styles.link}>Back to sign in</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 24, backgroundColor: '#fff' },
-  title: { fontSize: 26, fontWeight: '800', color: '#1f4d3d', textAlign: 'center', marginBottom: 8 },
-  subtitle: { fontSize: 13, color: '#666', textAlign: 'center', marginBottom: 20 },
-  input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 10, padding: 14, marginBottom: 12, fontSize: 16 },
-  button: { backgroundColor: '#1f4d3d', borderRadius: 10, padding: 16, alignItems: 'center', marginBottom: 16 },
-  buttonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
-  link: { color: '#1f4d3d', textAlign: 'center', fontWeight: '600' },
-  error: { color: '#c0392b', textAlign: 'center', marginBottom: 12 },
-  success: { color: '#2f8f5b', textAlign: 'center', marginBottom: 12 },
+  page: { ...shared.page, justifyContent: 'center', padding: 24 },
+  card: shared.card,
+  title: { fontSize: 24, fontWeight: '800', color: colors.text, textAlign: 'center', marginBottom: 8 },
+  subtitle: { fontSize: 13, color: colors.muted, textAlign: 'center', marginBottom: 20 },
+  input: { ...shared.input, marginBottom: 12 },
+  button: { ...shared.buttonPrimary, marginBottom: 16 },
+  buttonText: shared.buttonPrimaryText,
+  link: shared.link,
 });

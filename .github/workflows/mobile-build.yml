@@ -1,0 +1,33 @@
+name: Build Mobile APK (EAS)
+
+# Manual trigger only — EAS builds count against your monthly quota, so this
+# doesn't run automatically on every push. Trigger it from the Actions tab
+# when you actually want a fresh APK.
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.18'
+
+      - name: Install dependencies
+        working-directory: ./mobile
+        run: npm install
+
+      - name: Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build APK
+        working-directory: ./mobile
+        run: eas build --platform android --profile preview --non-interactive

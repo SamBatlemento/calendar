@@ -4,6 +4,8 @@ import { useFocusEffect } from '@react-navigation/native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import dayjs from 'dayjs';
 import { getMyMeals, logMeal, updateMeal, deleteMeal } from '../api/assignments';
+import { colors, shared, radii } from '../theme';
+import Banner from '../components/Banner';
 
 const MEAL_TIMES = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
 
@@ -120,8 +122,10 @@ export default function AthleteMealsScreen() {
         />
       )}
 
-      {error && <Text style={styles.error}>{error}</Text>}
-      {msg && <Text style={styles.msg}>{msg}</Text>}
+      <View style={styles.bannerWrap}>
+        <Banner variant="danger">{error}</Banner>
+        <Banner variant="success">{msg}</Banner>
+      </View>
 
       <FlatList
         data={meals}
@@ -132,12 +136,14 @@ export default function AthleteMealsScreen() {
             <TextInput
               style={styles.input}
               placeholder="Meal name"
+              placeholderTextColor={colors.muted}
               value={form.name}
               onChangeText={(v) => setForm((f) => ({ ...f, name: v }))}
             />
             <TextInput
               style={styles.input}
               placeholder="Calories"
+              placeholderTextColor={colors.muted}
               keyboardType="number-pad"
               value={form.calories}
               onChangeText={(v) => setForm((f) => ({ ...f, calories: v }))}
@@ -156,7 +162,7 @@ export default function AthleteMealsScreen() {
             <View style={styles.formButtons}>
               <Pressable style={styles.button} onPress={handleSave} disabled={saving}>
                 {saving ? (
-                  <ActivityIndicator color="#fff" />
+                  <ActivityIndicator color={colors.accentText} />
                 ) : (
                   <Text style={styles.buttonText}>{editingId ? 'Save Changes' : 'Log Meal'}</Text>
                 )}
@@ -193,8 +199,9 @@ export default function AthleteMealsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  heading: { fontSize: 22, fontWeight: '800', color: '#222', marginHorizontal: 20, marginTop: 16 },
+  container: shared.page,
+  bannerWrap: { marginHorizontal: 20 },
+  heading: { fontSize: 22, fontWeight: '800', color: colors.text, marginHorizontal: 20, marginTop: 16 },
   dateRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -202,43 +209,42 @@ const styles = StyleSheet.create({
     gap: 20,
     marginVertical: 12,
   },
-  dateArrow: { fontSize: 24, color: '#1f4d3d', paddingHorizontal: 8 },
-  dateText: { fontSize: 16, fontWeight: '600', color: '#222' },
-  error: { color: '#c0392b', marginHorizontal: 20, marginBottom: 8 },
-  msg: { color: '#2f8f5b', marginHorizontal: 20, marginBottom: 8, fontWeight: '600' },
+  dateArrow: { fontSize: 24, color: colors.accent, paddingHorizontal: 8 },
+  dateText: { fontSize: 16, fontWeight: '600', color: colors.text },
   form: { paddingHorizontal: 20, paddingBottom: 8 },
-  editingLabel: { fontSize: 12, color: '#1f4d3d', fontWeight: '700', marginBottom: 6 },
-  input: { borderWidth: 1, borderColor: '#ddd', borderRadius: 10, padding: 12, marginBottom: 8, fontSize: 15 },
-  segmented: { flexDirection: 'row', backgroundColor: '#eee', borderRadius: 10, padding: 4, marginBottom: 12 },
-  segment: { flex: 1, paddingVertical: 8, borderRadius: 8, alignItems: 'center' },
-  segmentActive: { backgroundColor: '#1f4d3d' },
-  segmentText: { color: '#555', fontWeight: '600', fontSize: 12 },
-  segmentTextActive: { color: '#fff' },
-  formButtons: { flexDirection: 'row', gap: 8 },
-  button: { flex: 1, backgroundColor: '#1f4d3d', borderRadius: 10, padding: 14, alignItems: 'center' },
-  buttonText: { color: '#fff', fontWeight: '700' },
-  cancelButton: {
-    flex: 1,
+  editingLabel: { fontSize: 12, color: colors.accent, fontWeight: '700', marginBottom: 6 },
+  input: { ...shared.input, padding: 12, marginBottom: 8, fontSize: 15 },
+  segmented: {
+    flexDirection: 'row',
+    backgroundColor: colors.bg,
     borderWidth: 1,
-    borderColor: '#1f4d3d',
-    borderRadius: 10,
-    padding: 14,
-    alignItems: 'center',
+    borderColor: colors.border,
+    borderRadius: radii.control,
+    padding: 4,
+    marginBottom: 12,
   },
-  cancelButtonText: { color: '#1f4d3d', fontWeight: '700' },
-  listLabel: { fontSize: 13, fontWeight: '700', color: '#555', marginTop: 20, marginBottom: 4 },
+  segment: { flex: 1, paddingVertical: 8, borderRadius: radii.pill, alignItems: 'center' },
+  segmentActive: { backgroundColor: colors.accent },
+  segmentText: { color: colors.muted, fontWeight: '600', fontSize: 12 },
+  segmentTextActive: { color: colors.accentText },
+  formButtons: { flexDirection: 'row', gap: 8 },
+  button: { ...shared.buttonPrimary, flex: 1, padding: 14 },
+  buttonText: shared.buttonPrimaryText,
+  cancelButton: { ...shared.buttonOutline, flex: 1, padding: 14 },
+  cancelButtonText: shared.buttonOutlineText,
+  listLabel: { fontSize: 13, fontWeight: '700', color: colors.muted, marginTop: 20, marginBottom: 4 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: colors.border,
     gap: 12,
   },
-  name: { fontSize: 15, fontWeight: '600', color: '#222' },
-  detail: { fontSize: 12, color: '#888', marginTop: 2 },
-  editText: { color: '#1f4d3d', fontWeight: '600' },
-  deleteText: { color: '#c0392b', fontWeight: '600' },
-  empty: { color: '#888', textAlign: 'center', marginTop: 30 },
+  name: { fontSize: 15, fontWeight: '600', color: colors.text },
+  detail: { fontSize: 12, color: colors.muted, marginTop: 2 },
+  editText: { color: colors.accent, fontWeight: '600' },
+  deleteText: { color: colors.danger, fontWeight: '600' },
+  empty: { color: colors.muted, textAlign: 'center', marginTop: 30 },
 });

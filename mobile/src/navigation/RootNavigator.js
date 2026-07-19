@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { View, Text, Pressable, ActivityIndicator, StyleSheet } from 'react-native';
 import { useAuth } from '../context/AuthContext';
+import { colors, navigationTheme, headerScreenOptions, tabScreenOptions } from '../theme';
 
 import LoginScreen from '../screens/LoginScreen';
 import SignupScreen from '../screens/SignupScreen';
@@ -27,7 +28,7 @@ function LogoutButton() {
   const { logout } = useAuth();
   return (
     <Pressable onPress={logout} style={{ marginRight: 16 }}>
-      <Text style={{ color: '#1f4d3d', fontWeight: '600' }}>Sign Out</Text>
+      <Text style={{ color: colors.accent, fontWeight: '700' }}>Sign Out</Text>
     </Pressable>
   );
 }
@@ -47,7 +48,7 @@ function LoginStack() {
 // ---- Athlete flow ----
 function AthleteTasksStack() {
   return (
-    <Stack.Navigator screenOptions={{ headerRight: LogoutButton }}>
+    <Stack.Navigator screenOptions={{ ...headerScreenOptions, headerRight: LogoutButton }}>
       <Stack.Screen name="TaskList" component={AthleteTasksScreen} options={{ title: 'My Tasks' }} />
       <Stack.Screen
         name="TaskDetail"
@@ -60,7 +61,7 @@ function AthleteTasksStack() {
 
 function AthleteTabs() {
   return (
-    <Tab.Navigator screenOptions={{ headerRight: LogoutButton }}>
+    <Tab.Navigator screenOptions={{ ...tabScreenOptions, headerRight: LogoutButton }}>
       <Tab.Screen name="Tasks" component={AthleteTasksStack} options={{ headerShown: false }} />
       <Tab.Screen name="Meals" component={AthleteMealsScreen} options={{ headerShown: false }} />
       <Tab.Screen name="Games" component={AthleteGamesScreen} options={{ headerShown: false }} />
@@ -71,7 +72,7 @@ function AthleteTabs() {
 // ---- Coach flow ----
 function CoachTabs() {
   return (
-    <Tab.Navigator screenOptions={{ headerRight: LogoutButton }}>
+    <Tab.Navigator screenOptions={{ ...tabScreenOptions, headerRight: LogoutButton }}>
       <Tab.Screen name="Assign" component={CoachAssignScreen} />
       <Tab.Screen name="Progress" component={CoachProgressScreen} options={{ headerShown: false }} />
       <Tab.Screen name="Team" component={CoachTeamScreen} options={{ headerShown: false }} />
@@ -87,18 +88,18 @@ export default function RootNavigator() {
   if (booting) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#1f4d3d" />
+        <ActivityIndicator size="large" color={colors.accent} />
       </View>
     );
   }
 
   return (
-    <NavigationContainer>
+    <NavigationContainer theme={navigationTheme}>
       {!user ? <LoginStack /> : user.role === 'Coach' ? <CoachTabs /> : <AthleteTabs />}
     </NavigationContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  center: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.bg },
 });

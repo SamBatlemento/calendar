@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Pressable, Text, StyleSheet } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
+import { colors } from '../theme';
 
 // Coaches need something concrete to reference ("assignment #4f2a1c") when they talk to an
 // athlete or look something up later. Mongo's full _id is too long to read at a glance, so we
@@ -30,7 +31,9 @@ export default function IdChip({ id, label = 'ID' }) {
 
 const styles = StyleSheet.create({
   chip: {
-    backgroundColor: '#eef1f0',
+    backgroundColor: colors.bg,
+    borderWidth: 1,
+    borderColor: colors.border,
     borderRadius: 6,
     paddingVertical: 3,
     paddingHorizontal: 8,
@@ -39,12 +42,12 @@ const styles = StyleSheet.create({
   text: {
     fontFamily: 'monospace',
     fontSize: 12,
-    color: '#1f4d3d',
+    color: colors.accent,
     fontWeight: '600',
   },
   copied: {
     fontSize: 10,
-    color: '#2f8f5b',
+    color: colors.successText,
     marginTop: 2,
   },
 });

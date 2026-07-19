@@ -22,7 +22,7 @@ jobs:
           cache: 'npm'
           cache-dependency-path: |
             package-lock.json
-            frontend/package-lock.json
+            web/package-lock.json
       
       - name: Install frontend dependencies
         working-directory: ./web
@@ -39,7 +39,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT }}
-          source: "frontend/dist/*"
+          source: "web/dist/*"
           target: "/var/www/html"
           strip_components: 2
           rm: true
@@ -51,7 +51,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT }}
-          source: "server.js,package.json,package-lock.json"
+          source: "server.js,createJWT.js,package.json,package-lock.json,API/*,models/*,middleware/*,utils/*"
           target: "/var/calendarServer"
           overwrite: true
 
