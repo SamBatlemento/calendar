@@ -69,9 +69,11 @@ exports.setApp = function(app, mongoose)
             {
                 team = await Team.findOne({ members: req.user.userId });
             }
+
+            let team = await Team.findOne({ coach: req.user.userId });
             if (!team)
             {
-                return res.status(200).json([]); // no team yet, not an error
+                team = await Team.create({ coach: req.user.userId, members: [] });
             }
 
             let query = { team: team._id };
