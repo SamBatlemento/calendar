@@ -10,6 +10,7 @@ const Exercise = require('./models/Exercise');
 const Assignment = require('./models/Assignment');
 const ExerciseLog = require('./models/ExerciseLog');
 const MealLog = require('./models/MealLog');
+const GameEvent = require('./models/GameEvent')
 
 async function seed()
 {
@@ -24,6 +25,7 @@ async function seed()
         Assignment.deleteMany({}),
         ExerciseLog.deleteMany({}),
         MealLog.deleteMany({}),
+        GameEvent.deleteMany({}),
     ]);
 
     const passwordHash = await bcrypt.hash('Test1234', 10);

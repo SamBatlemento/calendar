@@ -6,3 +6,4 @@ require('./Exercise.js');
 require('./Assignment.js');
 require('./ExerciseLog.js');
 require('./MealLog.js');
+require('./GameEvent.js');
