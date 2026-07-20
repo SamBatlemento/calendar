@@ -1,4 +1,13 @@
 require('dotenv').config();
+
+const required = ['MONGODB_URI', 'ACCESS_TOKEN_SECRET', 'SENDGRID_API_KEY', 'SENDGRID_FROM_EMAIL', 'CLIENT_URL'];
+const missing = required.filter((k) => !process.env[k]);
+if (missing.length)
+{
+    console.error('Missing required environment variables:', missing.join(', '));
+    process.exit(1);
+}
+
 require('./models/index.js');
 const express = require('express');
 const cors = require('cors');
