@@ -33,7 +33,10 @@ export default function CoachDashboard() {
       const exercisesResponse = await getExercises();
       const membersResponse = await getTeamMembers();
       setExercises(exercisesResponse.data);
-      setTeamMembers(membersResponse.data);
+      const sortedMembers = [...membersResponse.data].sort((a, b) =>
+        `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`)
+      );
+      setTeamMembers(sortedMembers);
     } catch (err) {
       console.error(err);
       setMsg(err.response?.data?.error || "Failed loading dashboard data");
@@ -98,7 +101,8 @@ export default function CoachDashboard() {
         return;
     }
     const { data } = await getAssignmentsForMember(member._id);
-    setSelectedProgressMember({ member, assignments: data });
+    const sortedAssignments = [...data].sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+    setSelectedProgressMember({ member, assignments: sortedAssignments });
     } catch(err) {
     setMsg(err.response?.data?.error || "Failed loading progress");
     }
@@ -145,7 +149,8 @@ export default function CoachDashboard() {
   const refreshProgress = async () => {
     if (!selectedProgressMember) return;
     const { data } = await getAssignmentsForMember(selectedProgressMember.member._id);
-    setSelectedProgressMember({ ...selectedProgressMember, assignments: data });
+    const sortedAssignments = [...data].sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+    setSelectedProgressMember({ ...selectedProgressMember, assignments: sortedAssignments });
   };
 
   const handleUpdateDueDate = async (assignmentId) => {
