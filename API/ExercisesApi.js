@@ -2,6 +2,7 @@ require('express');
 const Exercise = require('../models/Exercise.js');
 const Assignment = require('../models/Assignment.js');
 const ExerciseLog = require('../models/ExerciseLog.js');
+const Team = require('../models/Team.js');
 const { verifyJWT, requireRole } = require("../middleware/auth.js");
 
 exports.setApp = function(app, mongoose)
@@ -299,11 +300,14 @@ app.get('/api/exercise-log/:id',
             });
         }
 
-        // FIX (new): only the athlete who owns the log or a coach may view it
-        const isOwner = log.assignment && log.assignment.member.equals(req.user.userId);
-        const isCoach = req.user.role === 'Coach';
-
-        if (!isOwner && !isCoach)
+        const isOwner = assignment.member._id.equals(req.user.userId);
+        let isTeamCoach = false;
+        if (req.user.role === 'Coach')
+        {
+            const team = await Team.findOne({ coach: req.user.userId });
+            isTeamCoach = !!team && team.members.some(m => m.equals(assignment.member._id));
+        }
+        if (!isOwner && !isTeamCoach)
         {
             return res.status(403).json({ error: "Not authorized." });
         }
