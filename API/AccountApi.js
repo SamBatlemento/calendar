@@ -49,6 +49,11 @@ exports.setApp = function(app, mongoose)
 
         try
         {
+            if (!email || !password)
+            {
+                return res.status(400).json({ error: "Email and password are required." });
+            }
+            
             const user = await User.findOne({
                 email: email.toLowerCase()
             }).select('+password +refreshTokens');
