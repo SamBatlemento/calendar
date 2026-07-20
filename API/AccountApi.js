@@ -119,9 +119,9 @@ exports.setApp = function(app, mongoose)
             try
             {
                 await sendEmail(
-                    email,
+                    user.email,
                     'Verify your email',
-                    `Click the link to verify your account: ${process.env.CLIENT_URL}/verify/${verificationToken}`
+                    `Click the link to verify your account: ${process.env.CLIENT_URL}/verify/${user.verificationToken}`
                 );
             }
             catch (emailErr)
