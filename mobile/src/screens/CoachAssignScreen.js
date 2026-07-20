@@ -19,17 +19,16 @@ export default function CoachAssignScreen() {
   const [lastAssignmentId, setLastAssignmentId] = useState(null);
   const [msg, setMsg] = useState(null);
 
-  const loadDropdowns = useCallback(async () => {
+const loadDropdowns = useCallback(async () => {
     try {
       const [ex, members] = await Promise.all([getExercises(), getTeamMembers()]);
       setExercises(ex.data);
       setTeamMembers(members.data);
-      if (!exerciseId && ex.data[0]) setExerciseId(ex.data[0]._id);
-      if (!athleteId && members.data[0]) setAthleteId(members.data[0]._id);
+      setExerciseId((prev) => prev || ex.data[0]?._id || '');
+      setAthleteId((prev) => prev || members.data[0]?._id || '');
     } catch (err) {
       setMsg(err.response?.data?.error || 'Failed to load exercises/athletes.');
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useFocusEffect(
