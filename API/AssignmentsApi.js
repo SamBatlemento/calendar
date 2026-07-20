@@ -36,6 +36,11 @@ app.post('/api/assignments', verifyJWT, requireRole("Coach"), async (req, res) =
             });
         }
 
+        if (!exercise.coach.equals(req.user.userId))
+        {
+            return res.status(403).json({ error: "Exercise belongs to a different coach." });
+        }
+
         // Make sure the member exists
         const member = await Athlete.findById(memberId);
 
@@ -105,6 +110,11 @@ app.post('/api/assignments/team',
             return res.status(404).json({
                 error: "Exercise not found."
             });
+        }
+
+        if (!exercise.coach.equals(req.user.userId))
+        {
+            return res.status(403).json({ error: "Exercise belongs to a different coach." });
         }
 
         // Get the coach's team

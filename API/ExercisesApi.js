@@ -143,6 +143,11 @@ app.get('/api/exercises/:id',
             });
         }
 
+        if (!exercise.coach.equals(req.user.userId) || !exercise.athlete.equals(req.user.userId))
+        {
+            return res.status(403).json({ error: "Exercise belongs to a different coach." });
+        }
+
         return res.status(200).json(exercise);
     }
     catch (e)
@@ -217,6 +222,11 @@ app.delete('/api/exercises/:id',
             return res.status(404).json({
                 error: "Exercise not found."
             });
+        }
+
+        if (!exercise.coach.equals(req.user.userId))
+        {
+            return res.status(403).json({ error: "Exercise belongs to a different coach." });
         }
 
         // Block deletion if the exercise is referenced by any assignment,
