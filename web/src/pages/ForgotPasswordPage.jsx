@@ -7,10 +7,15 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('');
   const [sent, setSent] = useState(false);
 
-  const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
     e.preventDefault();
-    await forgotPassword(email);
-    setSent(true); // always show this, even on failure — don't reveal whether an email exists
+    try {
+      await forgotPassword(email);
+    } catch {
+      // Intentionally ignored: we show the same message regardless,
+      // so we don't reveal whether the email exists.
+    }
+    setSent(true);
   };
 
   if (sent) {
