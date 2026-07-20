@@ -2,6 +2,9 @@ require('express');
 const Athlete = require('../models/Athlete.js');
 const Team = require('../models/Team.js');
 const { verifyJWT, requireRole } = require("../middleware/auth.js");
+const Exercise = require('../models/Exercise.js');
+const Assignment = require('../models/Assignment.js');
+const ExerciseLog = require('../modles/ExerciseLog.js');
 
 exports.setApp = function(app, mongoose)
 {
@@ -181,6 +184,15 @@ app.delete('/api/team/members/:memberId',
                 error: "Athlete is not on the team."
             });
         }
+
+        const exerciseIds = await Exercise.find({ coach: req.user.userId }).distinct('_id');
+        const assignmentsIds = await Assignment.find({
+            member: memberId,
+            exercise: { $in: exerciseIds }
+        }).distinct('_id');
+
+        await ExerciseLog.deleteMany({ assignment: { $in: assignmentIds } });
+        await Assignment.deleteMany({ _id: { $in: assignmentIds } });
 
         team.members = team.members.filter(m => !m.equals(memberId));
 
