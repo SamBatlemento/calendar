@@ -24,4 +24,6 @@ const UserSchema = new Schema(
     options
 );
 
+UserSchema.index({ 'refreshTokens.tokenHash': 1 });
+
 module.exports = mongoose.model('User', UserSchema);

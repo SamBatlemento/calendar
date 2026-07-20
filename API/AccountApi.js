@@ -6,7 +6,9 @@ const crypto = require('crypto');
 const User = require('../models/User.js');
 const Coach = require('../models/Coach.js');
 const Athlete = require('../models/Athlete.js');
+
 const sendEmail = require('../utils/sendEmail.js');
+const handleError = require('../utils/handleError.js');
 
 const { verifyJWT, requireRole } = require("../middleware/auth.js");
 
@@ -100,8 +102,7 @@ exports.setApp = function(app, mongoose)
         }
         catch (e)
         {
-            console.error(e);
-            return res.status(500).json({ error: "Internal server error" });
+            return handleError(res, e);
         }
     });
 
@@ -181,8 +182,7 @@ exports.setApp = function(app, mongoose)
         }
         catch (e)
         {
-            console.error(e);
-            return res.status(500).json({ error: "Internal server error" });
+            return handleError(res, e);
         }
     });
 
@@ -222,8 +222,7 @@ exports.setApp = function(app, mongoose)
         }
         catch (e)
         {
-            console.error(e);
-            return res.status(500).json({ error: "Internal server error" });
+            return handleError(res, e);
         }
     });
 
@@ -270,8 +269,7 @@ exports.setApp = function(app, mongoose)
         }
         catch (e)
         {
-            console.error(e);
-            return res.status(500).json({ error: "Internal server error" });
+            return handleError(res, e);
         }
     });
 
@@ -326,8 +324,7 @@ exports.setApp = function(app, mongoose)
         }
         catch (e)
         {
-            console.error(e);
-            return res.status(500).json({ error: "Internal server error" });
+            return handleError(res, e);
         }
     });
 
@@ -353,8 +350,7 @@ exports.setApp = function(app, mongoose)
         }
         catch (e)
         {
-            console.error(e);
-            return res.status(200).json({ message: "Logged out." });
+            return handleError(res, e);
         }
     });    
 
@@ -391,78 +387,8 @@ exports.setApp = function(app, mongoose)
         }
         catch (e)
         {
-            console.error(e);
-            return res.status(500).json({ error: "Internal server error" });
+            return handleError(res, e);
         }
     });
 
-    // =========================
-    // Get User by ID
-    // =========================
-    app.get('/api/account/:id', verifyJWT, async (req, res) =>
-    {
-        if(!mongoose.Types.ObjectId.isValid(req.params.id))
-        {
-            return res.status(400).json({ error: "Invalid user ID."});
-        }
-
-        try
-        {
-            const user = await User.findById(req.params.id)
-                .select('-password -verificationToken');
-
-            if (!user)
-            {
-                return res.status(404).json({
-                    error: "User not found."
-                });
-            }
-
-            return res.status(200).json(user);
-        }
-        catch (e)
-        {
-            console.error(e);
-            return res.status(500).json({ error: "Internal server error" });
-        }
-    });
-
-    // =========================
-    // Get All Users (Coach Only)
-    // =========================
-    app.get('/api/accounts', verifyJWT, requireRole("Coach"), async (req, res) =>
-    {
-        try
-        {
-            const users = await User.find()
-                .select('-password -verificationToken');
-
-            return res.status(200).json(users);
-        }
-        catch (e)
-        {
-            console.error(e);
-            return res.status(500).json({ error: "Internal server error" });
-        }
-    });
-
-    // =========================
-    // Get Users by Role
-    // =========================
-    app.get('/api/accounts/role/:role', verifyJWT, requireRole("Coach"), async (req, res) =>
-    {
-        try
-        {
-            const users = await User.find({
-                role: req.params.role
-            }).select('-password -verificationToken');
-
-            return res.status(200).json(users);
-        }
-        catch (e)
-        {
-            console.error(e);
-            return res.status(500).json({ error: "Internal server error" });
-        }
-    });
 }

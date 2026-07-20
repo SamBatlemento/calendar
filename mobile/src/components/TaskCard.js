@@ -17,7 +17,7 @@ export default function TaskCard({ assignment, onPress }) {
     >
       <View style={{ flex: 1 }}>
         <Text style={styles.title}>{exerciseName}</Text>
-        <Text style={styles.due}>Due {dayjs(assignment.dueDate).format('ddd, MMM D')}</Text>
+        <Text style={styles.due}>Due {dayjs(String(assignment.dueDate).slice(0, 10)).format('ddd, MMM D')}</Text>
         {done && <Text style={styles.loggedText}>Logged: {assignment.loggedMinutes} min</Text>}
       </View>
 

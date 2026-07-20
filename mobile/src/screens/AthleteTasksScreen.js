@@ -5,6 +5,7 @@ import { getMyAssignments } from '../api/assignments';
 import TaskCard from '../components/TaskCard';
 import { colors, shared, radii } from '../theme';
 import Banner from '../components/Banner';
+import dayjs from 'dayjs';
 
 const FILTERS = [
   { key: 'today', label: 'Today' },
@@ -25,7 +26,11 @@ export default function AthleteTasksScreen({ navigation }) {
     setLoading(true);
     setError(null);
     try {
-      const { data } = await getMyAssignments({ filter: filter === 'all' ? undefined : filter });
+      const { data } = await getMyAssignments(
+        filter === 'today'
+          ? { date: dayjs().format('YYYY-MM-DD') }
+          : { filter: filter === 'all' ? undefined : filter }
+      );
       const sorted = [...data].sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
       setAssignments(sorted);
     } catch (err) {

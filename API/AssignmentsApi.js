@@ -3,10 +3,13 @@ const Athlete = require('../models/Athlete.js');
 const Exercise = require('../models/Exercise.js');
 const Assignment = require('../models/Assignment.js');
 const Team = require('../models/Team.js');
+const normalizeDay = require('../utils/normalizeDay.js');
 
 const { verifyJWT, requireRole } = require("../middleware/auth.js");
 
 const ExerciseLog = require('../models/ExerciseLog.js');
+
+const handleError = require('../utils/handleError.js');
 
 exports.setApp = function(app, mongoose)
 {
@@ -51,8 +54,6 @@ app.post('/api/assignments', verifyJWT, requireRole("Coach"), async (req, res) =
             });
         }
 
-        // FIX: was req.params.memberId (undefined on this route), so this
-        // check failed for every request and always returned 403
         const team = await Team.findOne({ coach: req.user.userId });
 
         if (!team || !team.members.some(m => m.equals(memberId)))
@@ -60,11 +61,16 @@ app.post('/api/assignments', verifyJWT, requireRole("Coach"), async (req, res) =
             return res.status(403).json({ error: "That athlete is not on your team." });
         }
 
-        // Create the assignment
+        const normalizedDue = normalizeDay(dueDate);
+        if (!normalizedDue)
+        {
+            return res.status(400).json({ error: "Due date must be in YYYY-MM-DD format." });
+        }
+
         const assignment = await Assignment.create({
             exercise: exerciseId,
             member: memberId,
-            dueDate
+            dueDate: normalizedDue
         });
 
         ret =
@@ -77,8 +83,7 @@ app.post('/api/assignments', verifyJWT, requireRole("Coach"), async (req, res) =
     }
     catch (e)
     {
-        console.error(e);
-        return res.status(500).json({ error: "Internal server error" });
+        return handleError(res, e);
     }
 });
 
@@ -127,12 +132,17 @@ app.post('/api/assignments/team',
             });
         }
 
-        // Create one assignment per team member
+        const normalizedDue = normalizeDay(dueDate);
+        if (!normalizedDue)
+        {
+            return res.status(400).json({ error: "Due date must be in YYYY-MM-DD format." });
+        }
+
         const assignments = await Assignment.insertMany(
             team.members.map(memberId => ({
                 exercise: exerciseId,
                 member: memberId,
-                dueDate
+                dueDate: normalizedDue
             }))
         );
 
@@ -143,8 +153,7 @@ app.post('/api/assignments/team',
     }
     catch (e)
     {
-        console.error(e);
-        return res.status(500).json({ error: "Internal server error" });
+        return handleError(res, e);
     }
 });
 
@@ -171,48 +180,37 @@ app.get('/api/my-assignments', verifyJWT, requireRole("Athlete"), async (req, re
 
         if (filter === "today")
         {
-            // FIX: end date was +7 days, making "today" identical to "week"
-            const start = new Date(today);
-            start.setHours(0,0,0,0);
-
-            const end = new Date(today);
-            end.setHours(23,59,59,999);
-
+            const day = new Date().toISOString().slice(0, 10); // today's UTC calendar date
             query.dueDate =
             {
-                $gte: start,
-                $lte: end
+                $gte: new Date(`${day}T00:00:00.000Z`),
+                $lte: new Date(`${day}T23:59:59.999Z`)
             };
         }
         else if (filter === "week")
         {
-            const end = new Date(today);
-            end.setDate(today.getDate() + 7);
+            const start = new Date(new Date().toISOString().slice(0, 10) + 'T00:00:00.000Z');
+            const end = new Date(start);
+            end.setUTCDate(end.getUTCDate() + 7);
+            end.setUTCHours(23, 59, 59, 999);
 
-            query.dueDate =
-            {
-                $gte: today,
-                $lte: end
-            };
+            query.dueDate = { $gte: start, $lte: end };
         }
         else if (date)
         {
-            const selected = new Date(date);
-
-            const start = new Date(selected);
-            start.setHours(0,0,0,0);
-
-            const end = new Date(selected);
-            end.setHours(23,59,59,999);
-
-            query.dueDate =
+            const window = normalizeDay(date);
+            if (!window)
             {
-                $gte: start,
-                $lte: end
-            };
+                return res.status(400).json({ error: "Date must be in YYYY-MM-DD format." });
+            }
+            const end = new Date(window);
+            end.setUTCHours(23, 59, 59, 999);
+
+            query.dueDate = { $gte: window, $lte: end };
         }
         else if (req.query.start && req.query.end)
         {
+            // These come from the web calendar's visible range — real instants, pass through
             query.dueDate =
             {
                 $gte: new Date(req.query.start),
@@ -244,9 +242,7 @@ app.get('/api/my-assignments', verifyJWT, requireRole("Athlete"), async (req, re
     }
     catch (e)
     {
-        // FIX: was catch(err) with console.error(e)
-        console.error(e);
-        return res.status(500).json({ error: "Internal server error" });
+        return handleError(res, e);
     }
 });
 
@@ -273,9 +269,13 @@ app.get('/api/assignments/:id',
         }
 
         const isOwner = assignment.member._id.equals(req.user.userId);
-        const isCoach = req.user.role === 'Coach';
-
-        if (!isOwner && !isCoach)
+        let isTeamCoach = false;
+        if (req.user.role === 'Coach')
+        {
+            const team = await Team.findOne({ coach: req.user.userId });
+            isTeamCoach = !!team && team.members.some(m => m.equals(assignment.member._id));
+        }
+        if (!isOwner && !isTeamCoach)
         {
             return res.status(403).json({ error: "Not authorized." });
         }
@@ -284,8 +284,7 @@ app.get('/api/assignments/:id',
     }
     catch (e)
     {
-        console.error(e);
-        return res.status(500).json({ error: "Internal server error" });
+        return handleError(res, e);
     }
 });
 
@@ -316,8 +315,7 @@ app.get('/api/assignments/member/:memberId',
     }
     catch (e)
     {
-        console.error(e);
-        return res.status(500).json({ error: "Internal server error" });
+        return handleError(res, e);
     }
 });
 
@@ -357,7 +355,13 @@ app.put('/api/assignments/:id',
             return res.status(403).json({ error: "That athlete is not on your team." });
         }
 
-        assignment.dueDate = dueDate;
+        const normalizedDue = normalizeDay(dueDate);
+        if (!normalizedDue)
+        {
+            return res.status(400).json({ error: "Due date must be in YYYY-MM-DD format." });
+        }
+
+        assignment.dueDate = normalizedDue;
         await assignment.save();
 
         return res.status(200).json({
@@ -366,8 +370,7 @@ app.put('/api/assignments/:id',
     }
     catch (e)
     {
-        console.error(e);
-        return res.status(500).json({ error: "Internal server error" });
+        return handleError(res, e);
     }
 });
 
@@ -409,8 +412,7 @@ app.delete('/api/assignments/:id',
     }
     catch (e)
     {
-        console.error(e);
-        return res.status(500).json({ error: "Internal server error" });
+        return handleError(res, e);
     }
 });
 }

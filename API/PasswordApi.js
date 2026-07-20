@@ -4,6 +4,7 @@ const bcrypt = require('bcryptjs');
 const User = require('../models/User.js');
 const {verifyJWT, requireRole} = require("../middleware/auth.js");
 const sendEmail = require('../utils/sendEmail.js');
+const handleError = require('../utils/handleError.js');
 
 const crypto = require("crypto");
 
@@ -55,8 +56,7 @@ app.post('/api/forgot-password', async (req, res) =>
     }
     catch (e)
     {
-        console.error(e);
-        return res.status(500).json({ error: "Internal server error" });
+        return handleError(res, e);
     }
 });
 
@@ -126,8 +126,7 @@ app.post('/api/reset-password', async (req, res) =>
     }
     catch (e)
     {
-        console.error(e);
-        return res.status(500).json({ error: "Internal server error" });
+        return handleError(res, e);
     }
 });
 
@@ -167,8 +166,7 @@ app.get('/api/reset-password/:token', async (req, res) =>
     }
     catch (e)
     {
-        console.error(e);
-        return res.status(500).json({ error: "Internal server error" });
+        return handleError(res, e);
     }
 });
 }

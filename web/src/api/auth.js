@@ -17,3 +17,6 @@ export const resendVerification = (email) =>
 
 export const logout = (refreshToken) => 
   client.post('/logout', { refreshToken });
+
+export const validateResetToken = (token) =>
+  client.get(`/reset-password/${token}`);
