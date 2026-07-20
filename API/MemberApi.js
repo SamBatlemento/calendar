@@ -4,7 +4,7 @@ const Team = require('../models/Team.js');
 const { verifyJWT, requireRole } = require("../middleware/auth.js");
 const Exercise = require('../models/Exercise.js');
 const Assignment = require('../models/Assignment.js');
-const ExerciseLog = require('../modles/ExerciseLog.js');
+const ExerciseLog = require('../models/ExerciseLog.js');
 
 exports.setApp = function(app, mongoose)
 {
