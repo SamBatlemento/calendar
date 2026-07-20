@@ -171,25 +171,22 @@ app.put('/api/exercises/:id',
             });
         }
 
-        const exercise = await Exercise.findByIdAndUpdate(
-            req.params.id,
-            { name, description, targetDuration },
-            { new: true, runValidators: true }
-        );
-
-        if (!exercise.coach.equals(req.user.userId))
-        {
-            return res.status(403).json({
-                error: "Exercise belongs to different coach."
-            });
-        }
+        const exercise = await Exercise.findById(req.params.id);
 
         if (!exercise)
         {
-            return res.status(404).json({
-                error: "Exercise not found."
-            });
+            return res.status(404).json({ error: "Exercise not found." });
         }
+
+        if (!exercise.coach.equals(req.user.userId))
+        {
+            return res.status(403).json({ error: "Exercise belongs to a different coach." });
+        }
+
+        exercise.name = name;
+        exercise.description = description;
+        exercise.targetDuration = targetDuration;
+        await exercise.save();
 
         return res.status(200).json({
             message: "Exercise updated successfully.",
