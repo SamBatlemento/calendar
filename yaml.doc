@@ -1,0 +1,761 @@
+openapi: 3.0.3
+info:
+  title: Coach/Team Calendar API
+  description: >
+    API for a coach/athlete team management app. Coaches assign exercises
+    and schedule games; athletes log exercise time and meals on a calendar.
+  version: 1.0.0
+
+servers:
+  - url: https://cop4331-9.com/api
+    description: Production
+  - url: http://localhost:5000/api
+    description: Local development
+
+tags:
+  - name: Auth
+    description: Signup, login, email verification, and password reset
+  - name: Team
+    description: Coach's roster management
+  - name: Exercises
+    description: Exercise creation and management
+  - name: Assignments
+    description: Assigning exercises to athletes and logging completion
+  - name: Meals
+    description: Meal logging for athletes
+  - name: Games
+    description: Team game/event scheduling
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Invalid email or password."
+
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [Coach, Athlete]
+        verified:
+          type: boolean
+
+    Exercise:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        targetDuration:
+          type: integer
+          description: Target duration in minutes
+
+    Assignment:
+      type: object
+      properties:
+        _id:
+          type: string
+        exercise:
+          $ref: '#/components/schemas/Exercise'
+        member:
+          type: string
+        dueDate:
+          type: string
+          format: date-time
+        completed:
+          type: boolean
+
+    MealLog:
+      type: object
+      properties:
+        _id:
+          type: string
+        meal:
+          type: string
+        calories:
+          type: integer
+        time:
+          type: string
+          enum: [Breakfast, Lunch, Dinner, Snack]
+        date:
+          type: string
+          format: date-time
+
+    GameEvent:
+      type: object
+      properties:
+        _id:
+          type: string
+        title:
+          type: string
+        location:
+          type: string
+        date:
+          type: string
+          format: date-time
+
+paths:
+  /signup:
+    post:
+      tags: [Auth]
+      summary: Create a new account
+      description: >
+        Creates a new Coach or Athlete account. The account is unverified
+        until the user clicks the verification link sent to their email.
+        Passwords must be at least 8 characters.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [firstName, lastName, email, password, role]
+              properties:
+                firstName:
+                  type: string
+                  example: Jane
+                lastName:
+                  type: string
+                  example: Doe
+                email:
+                  type: string
+                  format: email
+                  example: jane.doe@example.com
+                password:
+                  type: string
+                  format: password
+                  minLength: 8
+                  example: SecurePass123
+                role:
+                  type: string
+                  enum: [Coach, Athlete]
+                  example: Athlete
+      responses:
+        '201':
+          description: Account created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Account created successfully."
+                  userId:
+                    type: string
+                    example: "6a557b706f4a05987ec8634f"
+        '400':
+          description: Missing/invalid fields, password too short, or email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /login:
+    post:
+      tags: [Auth]
+      summary: Log in and receive a JWT
+      description: >
+        Authenticates an existing, verified user and returns a signed JWT
+        (expires in 20 minutes) along with basic user info, including role.
+        Unverified accounts are rejected with a 403.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: jane.doe@example.com
+                password:
+                  type: string
+                  format: password
+                  example: SecurePass123
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    description: JWT bearer token, valid for 20 minutes
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Invalid email or password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: Account exists but has not been verified yet
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /verify-email:
+    post:
+      tags: [Auth]
+      summary: Verify an account using the emailed token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token:
+                  type: string
+      responses:
+        '200':
+          description: Email verified successfully
+        '400':
+          description: Invalid or already-used token
+            
+  /resend-verification:
+    post:
+      tags: [Auth]
+      summary: Resend the verification email
+      description: >
+        Issues a fresh verification email for an unverified account. Always
+        returns a generic success message regardless of whether the email
+        exists, to avoid leaking account existence.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Generic confirmation message
+
+  /forgot-password:
+    post:
+      tags: [Auth]
+      summary: Request a password reset email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Generic confirmation message (does not reveal if the email exists)
+
+  /reset-password:
+    post:
+      tags: [Auth]
+      summary: Reset password using the emailed token
+      description: >
+        The new password must be different from the account's current
+        password, and the token must not be expired (30-minute window).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, password]
+              properties:
+                token:
+                  type: string
+                password:
+                  type: string
+                  minLength: 8
+      responses:
+        '200':
+          description: Password reset successfully
+        '400':
+          description: Invalid/expired token, or new password matches the current one
+
+  /team/add-member:
+    post:
+      tags: [Team]
+      summary: Add an athlete to the coach's team
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Athlete added successfully
+        '403':
+          description: Requires Coach role
+        '404':
+          description: Athlete not found
+
+  /team/members:
+    get:
+      tags: [Team]
+      summary: Get the coach's team roster
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of athletes on the coach's team
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+
+  /team/members/{memberId}:
+    delete:
+      tags: [Team]
+      summary: Remove an athlete from the team
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Athlete removed successfully
+
+  /exercises:
+    post:
+      tags: [Exercises]
+      summary: Create an exercise
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, description, targetDuration]
+              properties:
+                name:
+                  type: string
+                description:
+                  type: string
+                targetDuration:
+                  type: integer
+      responses:
+        '201':
+          description: Exercise created
+    get:
+      tags: [Exercises]
+      summary: List all exercises created by the coach
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of exercises
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Exercise'
+
+  /exercises/{id}:
+    put:
+      tags: [Exercises]
+      summary: Update an exercise
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Exercise updated
+    delete:
+      tags: [Exercises]
+      summary: Delete an exercise
+      description: Blocked if the exercise is currently referenced by any assignment.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Exercise deleted
+        '400':
+          description: Exercise is still assigned to one or more athletes
+
+  /assignments:
+    post:
+      tags: [Assignments]
+      summary: Assign an exercise to one athlete
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [exerciseId, memberId, dueDate]
+              properties:
+                exerciseId:
+                  type: string
+                memberId:
+                  type: string
+                dueDate:
+                  type: string
+                  format: date-time
+      responses:
+        '201':
+          description: Assignment created
+
+  /assignments/team:
+    post:
+      tags: [Assignments]
+      summary: Assign an exercise to every athlete on the coach's team
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [exerciseId, dueDate]
+              properties:
+                exerciseId:
+                  type: string
+                dueDate:
+                  type: string
+                  format: date-time
+      responses:
+        '201':
+          description: Assignment created for each team member
+
+  /my-assignments:
+    get:
+      tags: [Assignments]
+      summary: Get the logged-in athlete's assignments
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: filter
+          in: query
+          schema:
+            type: string
+            enum: [today, week]
+        - name: date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: start
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: end
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: List of the athlete's assignments, populated with exercise details
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Assignment'
+
+  /assignments/{id}:
+    put:
+      tags: [Assignments]
+      summary: Update an assignment's due date
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Assignment updated
+    delete:
+      tags: [Assignments]
+      summary: Delete an assignment
+      description: Also deletes any exercise log tied to this assignment.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Assignment deleted
+
+  /assignments/member/{memberId}:
+    get:
+      tags: [Assignments]
+      summary: Get all assignments for a specific athlete (coach view)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of the athlete's assignments
+
+  /exercise-log:
+    post:
+      tags: [Assignments]
+      summary: Log completed exercise time
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [assignmentId, minutes]
+              properties:
+                assignmentId:
+                  type: string
+                minutes:
+                  type: integer
+      responses:
+        '201':
+          description: Time logged, and the assignment is marked completed
+        '400':
+          description: Time has already been logged for this assignment
+
+  /meal-log:
+    post:
+      tags: [Meals]
+      summary: Log a meal
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [meal, calories, time, date]
+              properties:
+                meal:
+                  type: string
+                calories:
+                  type: integer
+                time:
+                  type: string
+                  enum: [Breakfast, Lunch, Dinner, Snack]
+                date:
+                  type: string
+                  format: date-time
+      responses:
+        '201':
+          description: Meal logged
+    get:
+      tags: [Meals]
+      summary: Get the logged-in athlete's meal logs
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: date
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Optional — filters to a single day
+      responses:
+        '200':
+          description: List of meal logs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MealLog'
+
+  /meal-log/{id}:
+    put:
+      tags: [Meals]
+      summary: Update a meal log
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Meal log updated
+    delete:
+      tags: [Meals]
+      summary: Delete a meal log
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Meal log deleted
+
+  /games:
+    post:
+      tags: [Games]
+      summary: Add a game date
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, date]
+              properties:
+                title:
+                  type: string
+                location:
+                  type: string
+                date:
+                  type: string
+                  format: date-time
+      responses:
+        '201':
+          description: Game added
+    get:
+      tags: [Games]
+      summary: Get games for the team (coach or athlete)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: start
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: end
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: List of games
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/GameEvent'
+
+  /games/{id}:
+    put:
+      tags: [Games]
+      summary: Update a game
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Game updated
+    delete:
+      tags: [Games]
+      summary: Delete a game
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Game deleted
