@@ -4,8 +4,22 @@ const express = require('express');
 const cors = require('cors');
 
 const app = express();
-app.use(cors());
+app.use(cors({ origin: [process.env.CLIENT_URL, 'http://localhost:5173'] }));
 app.use(express.json());
+
+const rateLimit = require('express-rate-limit');
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20,                  // 20 attempts per IP per window
+  message: { error: 'Too many attempts. Please try again later.' }
+});
+
+app.use('/api/login', authLimiter);
+app.use('/api/signup', authLimiter);
+app.use('/api/forgot-password', authLimiter);
+app.use('/api/resend-verifcation', authLimiter);
+app.use('/api/refresh', authLimiter);
 
 const mongoose = require('mongoose');
 
