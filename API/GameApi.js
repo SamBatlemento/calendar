@@ -1,5 +1,6 @@
 const GameEvent = require('../models/GameEvent.js');
 const Team = require('../models/Team.js');
+const normalizeDay = require('../utils/normalizeDay.js');
 const { verifyJWT, requireRole } = require('../middleware/auth.js');
 
 exports.setApp = function(app, mongoose)
@@ -25,13 +26,21 @@ exports.setApp = function(app, mongoose)
                     error: "You don't have a team yet."
                 });
             }
+
+            const normalizedDate = normalizeDay(date);
+            if (!normalizedDate)
+            {
+                return res.status(400).json({ error: "Date must be in YYYY-MM-DD format." });
+            }
+
             const game = await GameEvent.create({
                 team: team._id,
                 coach: req.user.userId,
                 title,
                 location,
-                date
+                date: normalizedDate
             });
+
             return res.status(201).json({
                 message: "Game date added.",
                 game
@@ -95,14 +104,20 @@ exports.setApp = function(app, mongoose)
             {
                 return res.status(404).json({ error: "Game not found." });
             }
-            if (!game.coach.equals(req.user.userId))
-            {
-                return res.status(403).json({ error: "Not authorized." });
-            }
+            
             if (title) game.title = title;
             if (location !== undefined) game.location = location;
-            if (date) game.date = date;
+            if (date)
+            {
+                const normalizedDate = normalizeDay(date);
+                if (!normalizedDate)
+                {
+                    return res.status(400).json({ error: "Date must be in YYYY-MM-DD format." });
+                }
+                game.date = normalizedDate;
+            }
             await game.save();
+
             return res.status(200).json({
                 message: "Game updated.",
                 game

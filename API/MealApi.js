@@ -1,6 +1,7 @@
 require('express');
 const MealLog = require('../models/MealLog.js');
 const { verifyJWT, requireRole } = require("../middleware/auth.js");
+const normalizeDay = require('../utils/normalizeDay.js');
 
 exports.setApp = function(app, mongoose)
 {
@@ -18,12 +19,19 @@ app.post('/api/meal-log', verifyJWT, requireRole("Athlete"), async (req, res) =>
             });
         }
 
+        // Accept 'YYYY-MM-DD' or a full ISO string; keep only the calendar day.
+        const normalizedDate = normalizeDay(date);
+        if (!normalizedDate)
+        {
+            return res.status(400).json({ error: "Date must be in YYYY-MM-DD format." });
+        }
+
         const mealLog = await MealLog.create({
             member: req.user.userId,
             meal,
             calories,
             time,
-            date
+            date: normalizedDate
         });
 
         return res.status(201).json({
@@ -53,10 +61,9 @@ app.get('/api/meal-log',
         const { date } = req.query;
         if (date)
         {
-            const start = new Date(date);
-            start.setHours(0, 0, 0, 0);
-            const end = new Date(date);
-            end.setHours(23, 59, 59, 999);
+            const day = String(date).slice(0, 10);
+            const start = new Date(`${day}T00:00:00.000Z`);
+            const end = new Date(`${day}T23:59:59.999Z`);
             query.date = { $gte: start, $lte: end };
         }
 
@@ -139,10 +146,17 @@ app.put('/api/meal-log/:id',
             });
         }
 
+        // Accept 'YYYY-MM-DD' or a full ISO string; keep only the calendar day.
+        const normalizedDate = normalizeDay(date);
+        if (!normalizedDate)
+        {
+            return res.status(400).json({ error: "Date must be in YYYY-MM-DD format." });
+        }
+
         mealLog.meal = meal;
         mealLog.calories = calories;
         mealLog.time = time;
-        mealLog.date = date;
+        mealLog.date = normalizedDate;
 
         await mealLog.save();
 

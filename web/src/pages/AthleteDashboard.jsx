@@ -127,7 +127,7 @@ export default function AthleteDashboard() {
     e.preventDefault();
     await logMeal({
       ...meal,
-      date: meal.date ? parseLocalDate(meal.date).toISOString() : new Date().toISOString(),
+      date: meal.date || dayjs().format('YYYY-MM-DD'),
     });
     setMeal({ name: '', calories: '', time: 'Breakfast', date: '' });
     const { data } = await getMyMeals(mealDate);
@@ -141,7 +141,7 @@ export default function AthleteDashboard() {
         name: editingMeal.meal,
         calories: editingMeal.calories,
         time: editingMeal.time,
-        date: parseLocalDate(editingMeal.date).toISOString(),
+        date: editingMeal.date,
       });
       setMsg('Meal updated.');
       setEditingMeal(null);

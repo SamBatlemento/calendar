@@ -44,7 +44,7 @@ export default function CoachGamesScreen() {
       await createGame({
         title: form.title.trim(),
         location: form.location.trim(),
-        date: dayjs(date).toISOString(),
+        date: dayjs(date).format('YYYY-MM-DD'),
       });
       setMsg('Game added.');
       setForm({ title: '', location: '' });
@@ -127,7 +127,7 @@ export default function CoachGamesScreen() {
           <View style={styles.row}>
             <View style={{ flex: 1 }}>
               <Text style={styles.name}>{item.title}</Text>
-              <Text style={styles.detail}>{dayjs(item.date).format('MMM D, YYYY')}</Text>
+              <Text style={styles.detail}>{dayjs(String(item.date).slice(0, 10)).format('MMM D, YYYY')}</Text>
               {item.location ? <Text style={styles.detail}>{item.location}</Text> : null}
             </View>
             <Pressable onPress={() => handleDelete(item)}>

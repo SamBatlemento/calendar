@@ -48,7 +48,7 @@ export default function AthleteGamesScreen() {
         renderItem={({ item }) => (
           <View style={styles.card}>
             <Text style={styles.title}>🏆 {item.title}</Text>
-            <Text style={styles.detail}>{dayjs(item.date).format('dddd, MMMM D, YYYY')}</Text>
+            <Text style={styles.detail}>{dayjs(String(item.date).slice(0, 10)).format('dddd, MMMM D, YYYY')}</Text>
             {item.location ? <Text style={styles.detail}>{item.location}</Text> : null}
           </View>
         )}

@@ -49,7 +49,7 @@ export default function CoachAssignScreen() {
       const { data } = await assignExercise({
         exerciseId,
         athleteId,
-        dueDate: dayjs(dueDate).toISOString(),
+        dueDate: dayjs(dueDate).format('YYYY-MM-DD'),
       });
       // Surfacing this ID is the whole point: the coach now has something concrete
       // to point to ("assignment #4F2A1C") instead of just a name + a due date.
@@ -73,7 +73,7 @@ export default function CoachAssignScreen() {
           try {
             const { data } = await bulkAssignExercise({
               exerciseId,
-              dueDate: dayjs(dueDate).toISOString(),
+              dueDate: dayjs(dueDate).format('YYYY-MM-DD'),
             });
             setMsg(data.message);
             setLastAssignmentId(null); // multiple ids created; see Team Progress for each one
