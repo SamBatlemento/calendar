@@ -273,9 +273,13 @@ app.get('/api/assignments/:id',
         }
 
         const isOwner = assignment.member._id.equals(req.user.userId);
-        const isCoach = req.user.role === 'Coach';
-
-        if (!isOwner && !isCoach)
+        let isTeamCoach = false;
+        if (req.user.role === 'Coach')
+        {
+            const team = await Team.findOne({ coach: req.user.userId });
+            isTeamCoach = !!team && team.members.some(m => m.equals(assignment.member._id));
+        }
+        if (!isOwner && !isTeamCoach)
         {
             return res.status(403).json({ error: "Not authorized." });
         }
