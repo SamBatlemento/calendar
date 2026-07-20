@@ -13,6 +13,13 @@ const UserSchema = new Schema(
         verificationToken: { type: String, select: false },
         passwordResetToken: { type: String, select: false },
         passwordResetExpires: { type: Date, select: false },
+        refreshTokens: {
+            type: [{
+                tokenHash: { type: String, required: true},
+                expiresAt: { type: Date, required: true },
+            }],
+            select: false,
+        },
     },
     options
 );

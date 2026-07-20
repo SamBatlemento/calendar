@@ -23,13 +23,18 @@ export function AuthProvider({ children }) {
   const login = async (email, password) => {
     const { data } = await authApi.login({ email, password });
     await AsyncStorage.setItem('token', data.token);
+    await AsyncStorage.setItem('refreshToken', data.refreshToken);
     await AsyncStorage.setItem('user', JSON.stringify(data.user));
     setUser(data.user);
     return data.user;
   };
 
   const logout = async () => {
-    await AsyncStorage.multiRemove(['token', 'user']);
+    const refreshToken = await AsyncStorage.getItem('refreshToken');
+    if (refreshToken) {
+      authApi.logout(refreshToken).catch(() => {});
+    }
+    await AsyncStorage.multiRemove(['token', 'refreshToken', 'user']);
     setUser(null);
   };
 

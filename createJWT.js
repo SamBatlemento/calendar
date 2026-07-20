@@ -19,28 +19,3 @@ function createToken(fn, ln, id, role)
 
 exports.createToken = createToken;
 
-exports.isExpired = function(token)
-{
-    try
-    {
-        jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-        return false;
-    }
-    catch (e)
-    {
-        return true;
-    }
-}
-
-exports.refresh = function(token)
-{
-    try
-    {
-        const ud = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, { ignoreExpiration: true });
-        return createToken(ud.firstName, ud.lastName, ud.userId, ud.role);
-    }
-    catch (e)
-    {
-        return { error: "Invalid token" };
-    }
-}

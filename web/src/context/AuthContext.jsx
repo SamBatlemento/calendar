@@ -10,20 +10,26 @@ export function AuthProvider({ children }) {
   });
 
 const login = async (email, password) => {
-  const { data } = await authApi.login({ email, password });
-  localStorage.setItem('token', data.token);        
-  localStorage.setItem('user', JSON.stringify(data.user)); 
-  setUser(data.user);
-  return data.user;
-};
+    const { data } = await authApi.login({ email, password });
+    localStorage.setItem('token', data.token);
+    localStorage.setItem('refreshToken', data.refreshToken);
+    localStorage.setItem('user', JSON.stringify(data.user));
+    setUser(data.user);
+    return data.user;
+  };
 
   const signup = async (formData) => {
     const { data } = await authApi.signup(formData);
     return data; // typically { message: 'check your email to verify' }
   };
 
-  const logout = () => {
+const logout = () => {
+    const refreshToken = localStorage.getItem('refreshToken');
+    if (refreshToken) {
+      authApi.logout(refreshToken).catch(() => {});
+    }
     localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
     localStorage.removeItem('user');
     setUser(null);
   };

@@ -10,6 +10,34 @@ const sendEmail = require('../utils/sendEmail.js');
 
 const { verifyJWT, requireRole } = require("../middleware/auth.js");
 
+const REFRESH_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+const MAX_SESSIONS = 5;
+
+function hashToken(t)
+{
+    return crypto.createHash('sha256').update(t).digest('hex');
+}
+
+async function issueRefreshToken(user)
+{
+    const raw = crypto.randomBytes(40).toString('hex');
+
+    user.refreshTokens = (user.refreshTokens || []).filter(t => t.expiresAt > Date.now());
+
+    user.refreshTokens.push({
+        tokenHash: hashToken(raw),
+        expiresAt: new Date(Date.now() + REFRESH_TOKEN_TTL_MS),
+    });
+
+    if (user.refreshTokens.length > MAX_SESSIONS)
+    {
+        user.refreshTokens = user.refreshTokens.slice(-MAX_SESSIONS);
+    }
+
+    await user.save();
+    return raw;
+}
+
 exports.setApp = function(app, mongoose)
 {
     // =========================
@@ -21,9 +49,14 @@ exports.setApp = function(app, mongoose)
 
         try
         {
+            if (!email || !password)
+            {
+                return res.status(400).json({ error: "Email and password are required." });
+            }
+            
             const user = await User.findOne({
                 email: email.toLowerCase()
-            }).select('+password');
+            }).select('+password +refreshTokens');
 
             if (!user || !(await bcrypt.compare(password, user.password)))
             {
@@ -51,8 +84,11 @@ exports.setApp = function(app, mongoose)
                 return res.status(500).json({ error: ret.error });
             }
 
+            const refreshToken = await issueRefreshToken(user);
+
             return res.status(200).json({
                 token: ret.accessToken,
+                refreshToken,
                 user: {
                     id: user._id,
                     firstName: user.firstName,
@@ -233,6 +269,89 @@ exports.setApp = function(app, mongoose)
             return res.status(500).json({ error: "Internal server error" });
         }
     });
+
+    // =========================
+    // Refresh Access Token
+    // =========================
+    app.post('/api/refresh', async (req, res) =>
+    {
+        const { refreshToken } = req.body;
+
+        try
+        {
+            if (!refreshToken)
+            {
+                return res.status(400).json({ error: "Refresh token is required." });
+            }
+
+            const tokenHash = hashToken(refreshToken);
+
+            const user = await User.findOne({
+                'refreshTokens.tokenHash': tokenHash
+            }).select('+refreshTokens');
+
+            if(!user)
+            {
+                return res.status(401).json({ error: "Invalid refresh token." });
+            }
+
+            const stored = user.refreshTokens.find(t => t.tokenHash === tokenHash);
+
+            if(!stored || stored.expiresAt < Date.now())
+            {
+                user.refreshTokens = user.refreshTokens.filter(t => t.tokenHash !== tokenHash);
+                await user.save();
+                return res.status(401).json({ error: "Refresh token expired. Please log in again." });
+            }
+
+            user.refreshTokens = user.refreshTokens.filter(t => t.tokenHash !== tokenHash);
+            const newRefreshToken = await issueRefreshToken(user);
+
+            const ret = token.createToken(user.firstName, user.lastName, user._id, user.role);
+
+            if (ret.error)
+            {
+                return res.status(500).json({ error: ret.error });
+            }
+
+            return res.status(200).json({
+                token: ret.accessToken,
+                refreshToken: newRefreshToken
+            });
+        }
+        catch (e)
+        {
+            console.error(e);
+            return res.status(500).json({ error: "Internal server error" });
+        }
+    });
+
+    // =========================
+    // Logout (revoke refresh token)
+    // =========================
+    app.post('/api/logout', async (req, res) =>
+    {
+        const { refreshToken } = req.body;
+
+        try
+        {
+            if (refreshToken)
+            {
+                const tokenHash = hashToken(refreshToken);
+                await User.updateOne(
+                    { 'refreshTokens.tokenHash': tokenHash },
+                    { $pull: { refreshTokens: { tokenHash } } }
+                );
+            }
+            // Always succeed — logout should never fail from the user's perspective
+            return res.status(200).json({ message: "Logged out." });
+        }
+        catch (e)
+        {
+            console.error(e);
+            return res.status(200).json({ message: "Logged out." });
+        }
+    });    
 
     // =========================
     // Validate JWT
