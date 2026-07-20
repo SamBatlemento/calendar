@@ -139,35 +139,6 @@ app.get('/api/team/members',
 });
 
 // =========================
-// Get Team by ID
-// =========================
-app.get('/api/team/:id',
-    verifyJWT,
-    async (req, res) =>
-{
-    try
-    {
-        const team = await Team.findById(req.params.id)
-            .populate("coach")
-            .populate("members");
-
-        if (!team)
-        {
-            return res.status(404).json({
-                error: "Team not found."
-            });
-        }
-
-        return res.status(200).json(team);
-    }
-    catch (e)
-    {
-        console.error(e);
-        return res.status(500).json({ error: "Internal server error" });
-    }
-});
-
-// =========================
 // Remove Team Member (Coach)
 // =========================
 app.delete('/api/team/members/:memberId',
