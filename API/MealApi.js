@@ -2,6 +2,7 @@ require('express');
 const MealLog = require('../models/MealLog.js');
 const { verifyJWT, requireRole } = require("../middleware/auth.js");
 const normalizeDay = require('../utils/normalizeDay.js');
+const handleError = require('../utils/handleError.js');
 
 exports.setApp = function(app, mongoose)
 {
@@ -41,8 +42,7 @@ app.post('/api/meal-log', verifyJWT, requireRole("Athlete"), async (req, res) =>
     }
     catch (e)
     {
-        console.error(e);
-        return res.status(500).json({ error: "Internal server error" });
+        return handleError(res, e);
     }
 });
 
@@ -72,7 +72,7 @@ app.get('/api/meal-log',
     }
     catch (e)
     {
-        return res.status(500).json({ error: e.message });
+        return handleError(res, e);
     }
 });
 
@@ -106,8 +106,7 @@ app.get('/api/meal-log/:id',
     }
     catch (e)
     {
-        console.error(e);
-        return res.status(500).json({ error: "Internal server error" });
+        return handleError(res, e);
     }
 });
 
@@ -166,8 +165,7 @@ app.put('/api/meal-log/:id',
     }
     catch (e)
     {
-        console.error(e);
-        return res.status(500).json({ error: "Internal server error" });
+        return handleError(res, e);
     }
 });
 
@@ -205,8 +203,7 @@ app.delete('/api/meal-log/:id',
     }
     catch (e)
     {
-        console.error(e);
-        return res.status(500).json({ error: "Internal server error" });
+        return handleError(res, e);
     }
 });
 }

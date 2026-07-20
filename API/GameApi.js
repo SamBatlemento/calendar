@@ -2,6 +2,7 @@ const GameEvent = require('../models/GameEvent.js');
 const Team = require('../models/Team.js');
 const normalizeDay = require('../utils/normalizeDay.js');
 const { verifyJWT, requireRole } = require('../middleware/auth.js');
+const handleError = require('../utils/handleError.js');
 
 exports.setApp = function(app, mongoose)
 {
@@ -48,8 +49,7 @@ exports.setApp = function(app, mongoose)
         }
         catch (e)
         {
-            console.error(e);
-            return res.status(500).json({ error: "Internal server error" });
+            return handleError(res, e);
         }
     });
 
@@ -86,8 +86,7 @@ exports.setApp = function(app, mongoose)
         }
         catch (e)
         {
-            console.error(e);
-            return res.status(500).json({ error: "Internal server error" });
+            return handleError(res, e);
         }
     });
 
@@ -125,8 +124,7 @@ exports.setApp = function(app, mongoose)
         }
         catch (e)
         {
-            console.error(e);
-            return res.status(500).json({ error: "Internal server error" });
+            return handleError(res, e);
         }
     });
 
@@ -151,8 +149,7 @@ exports.setApp = function(app, mongoose)
         }
         catch (e)
         {
-            console.error(e);
-            return res.status(500).json({ error: "Internal server error" });
+            return handleError(res, e);
         }
     });
 };

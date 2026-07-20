@@ -9,6 +9,8 @@ const { verifyJWT, requireRole } = require("../middleware/auth.js");
 
 const ExerciseLog = require('../models/ExerciseLog.js');
 
+const handleError = require('../utils/handleError.js');
+
 exports.setApp = function(app, mongoose)
 {
 
@@ -81,8 +83,7 @@ app.post('/api/assignments', verifyJWT, requireRole("Coach"), async (req, res) =
     }
     catch (e)
     {
-        console.error(e);
-        return res.status(500).json({ error: "Internal server error" });
+        return handleError(res, e);
     }
 });
 
@@ -152,8 +153,7 @@ app.post('/api/assignments/team',
     }
     catch (e)
     {
-        console.error(e);
-        return res.status(500).json({ error: "Internal server error" });
+        return handleError(res, e);
     }
 });
 
@@ -242,9 +242,7 @@ app.get('/api/my-assignments', verifyJWT, requireRole("Athlete"), async (req, re
     }
     catch (e)
     {
-        // FIX: was catch(err) with console.error(e)
-        console.error(e);
-        return res.status(500).json({ error: "Internal server error" });
+        return handleError(res, e);
     }
 });
 
@@ -286,8 +284,7 @@ app.get('/api/assignments/:id',
     }
     catch (e)
     {
-        console.error(e);
-        return res.status(500).json({ error: "Internal server error" });
+        return handleError(res, e);
     }
 });
 
@@ -318,8 +315,7 @@ app.get('/api/assignments/member/:memberId',
     }
     catch (e)
     {
-        console.error(e);
-        return res.status(500).json({ error: "Internal server error" });
+        return handleError(res, e);
     }
 });
 
@@ -374,8 +370,7 @@ app.put('/api/assignments/:id',
     }
     catch (e)
     {
-        console.error(e);
-        return res.status(500).json({ error: "Internal server error" });
+        return handleError(res, e);
     }
 });
 
@@ -417,8 +412,7 @@ app.delete('/api/assignments/:id',
     }
     catch (e)
     {
-        console.error(e);
-        return res.status(500).json({ error: "Internal server error" });
+        return handleError(res, e);
     }
 });
 }
