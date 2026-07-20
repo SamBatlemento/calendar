@@ -14,3 +14,6 @@ export const resetPassword = (token, password) =>
 
 export const resendVerification = (email) =>
   client.post('/resend-verification', { email });
+
+export const logout = (refreshToken) => 
+  client.post('/logout', { refreshToken });
