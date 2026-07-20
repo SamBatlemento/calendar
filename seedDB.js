@@ -10,9 +10,19 @@ const Exercise = require('./models/Exercise');
 const Assignment = require('./models/Assignment');
 const ExerciseLog = require('./models/ExerciseLog');
 const MealLog = require('./models/MealLog');
+const GameEvent = require('./models/GameEvent')
 
 async function seed()
 {
+
+    if(process.env.ALLOW_DB_WIPE !== 'yes')
+    {
+        console.error('Refusing to run: this script DELETES ALL DATA.');
+        console.error('If you are sure, run:  ALLOW_DB_WIPE=yes node seedDB.js');
+        console.error('Target DB:', process.env.MONGODB_URI?.replace(/\/\/.*@/, '//<redacted>@'));
+        process.exit(1);
+    }
+
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('Connected for seeding...');
 
@@ -24,6 +34,7 @@ async function seed()
         Assignment.deleteMany({}),
         ExerciseLog.deleteMany({}),
         MealLog.deleteMany({}),
+        GameEvent.deleteMany({}),
     ]);
 
     const passwordHash = await bcrypt.hash('Test1234', 10);

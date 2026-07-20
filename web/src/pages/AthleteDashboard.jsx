@@ -48,9 +48,10 @@ export default function AthleteDashboard() {
   }, [range]);
 
   useEffect(() => {
-    getMyMeals(mealDate).then(({ data }) => setMeals(data));
+    getMyMeals(mealDate)
+      .then(({ data }) => setMeals(data))
+      .catch((err) => setMsg(err.response?.data?.error || 'Failed to load meals.'));
   }, [mealDate]);
-
 
   const handleRangeChange = (visibleRange) => {
     const start = Array.isArray(visibleRange) ? visibleRange[0] : visibleRange.start;
@@ -125,13 +126,17 @@ export default function AthleteDashboard() {
 
   const handleLogMeal = async (e) => {
     e.preventDefault();
-    await logMeal({
-      ...meal,
-      date: meal.date ? parseLocalDate(meal.date).toISOString() : new Date().toISOString(),
-    });
-    setMeal({ name: '', calories: '', time: 'Breakfast', date: '' });
-    const { data } = await getMyMeals(mealDate);
-    setMeals(data);
+    try {
+      await logMeal({
+        ...meal,
+        date: meal.date || dayjs().format('YYYY-MM-DD'), // per issue 15
+      });
+      setMeal({ name: '', calories: '', time: 'Breakfast', date: mealDate });
+      const { data } = await getMyMeals(mealDate);
+      setMeals(data);
+    } catch (err) {
+      setMsg(err.response?.data?.error || 'Failed to log meal.');
+    }
   };
 
   const handleUpdateMeal = async (e) => {
@@ -141,7 +146,7 @@ export default function AthleteDashboard() {
         name: editingMeal.meal,
         calories: editingMeal.calories,
         time: editingMeal.time,
-        date: parseLocalDate(editingMeal.date).toISOString(),
+        date: editingMeal.date,
       });
       setMsg('Meal updated.');
       setEditingMeal(null);

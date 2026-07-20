@@ -23,4 +23,6 @@ const TeamSchema = new Schema(
     timestamps: true
 });
 
+TeamSchema.index({ members: 1 });
+
 module.exports = mongoose.model('Team', TeamSchema);

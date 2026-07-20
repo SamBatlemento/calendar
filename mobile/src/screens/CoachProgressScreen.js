@@ -98,7 +98,7 @@ export default function CoachProgressScreen() {
                         {a.exercise?.name || 'Unknown Exercise'}
                       </Text>
                       <Text style={styles.dueDate}>
-                        Due {dayjs(a.dueDate).format('MMM D, YYYY')} ·{' '}
+                        Due {dayjs(String(a.dueDate).slice(0, 10)).format('MMM D, YYYY')} ·{' '}
                         {a.completed ? '✓ Completed' : 'Not completed'}
                       </Text>
                       <IdChip id={a._id} label="Assignment" />

@@ -30,7 +30,7 @@ export default function TaskDetailScreen({ route, navigation }) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>{assignment.exercise?.name}</Text>
-      <Text style={styles.due}>Due {dayjs(assignment.dueDate).format('dddd, MMMM D')}</Text>
+      <Text style={styles.due}>Due {dayjs(String(assignment.dueDate).slice(0, 10)).format('dddd, MMMM D')}</Text>
       {assignment.exercise?.description ? (
         <Text style={styles.description}>{assignment.exercise.description}</Text>
       ) : null}

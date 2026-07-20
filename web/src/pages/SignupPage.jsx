@@ -41,6 +41,7 @@ export default function SignupPage() {
       <Container className="mt-5 text-center" style={{ maxWidth: 420 }}>
         <h2 id="signup-status-heading" className="visually-hidden">Signup status</h2>
         <Alert variant="success">{status}</Alert>
+        <Link to ="/login" className="theme-link">Go to login</Link>
 
         <div className="theme-card text-start mt-3">
           <p className="theme-heading mb-3">Didn't get the email?</p>

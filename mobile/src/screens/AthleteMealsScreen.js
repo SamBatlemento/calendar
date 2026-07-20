@@ -52,7 +52,7 @@ export default function AthleteMealsScreen() {
       name: form.name.trim(),
       calories: form.calories,
       time: form.time,
-      date: dayjs(viewDate).toISOString(),
+      date: dayjs(viewDate).format('YYYY-MM-DD'),
     };
     try {
       if (editingId) {

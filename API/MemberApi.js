@@ -6,6 +6,8 @@ const Exercise = require('../models/Exercise.js');
 const Assignment = require('../models/Assignment.js');
 const ExerciseLog = require('../models/ExerciseLog.js');
 
+const handleError = require('../utils/handleError.js');
+
 exports.setApp = function(app, mongoose)
 {
 
@@ -68,10 +70,7 @@ app.post('/api/team/add-member', verifyJWT, requireRole("Coach"), async (req, re
     }
     catch (e)
     {
-        // FIX: was catch(err) with console.error(e), which threw a
-        // ReferenceError inside the catch block
-        console.error(e);
-        return res.status(500).json({ error: "Internal server error" });
+        return handleError(res, e);
     }
 });
 
@@ -102,8 +101,7 @@ app.get('/api/team',
     }
     catch (e)
     {
-        console.error(e);
-        return res.status(500).json({ error: "Internal server error" });
+        return handleError(res, e);
     }
 });
 
@@ -133,8 +131,7 @@ app.get('/api/team/members',
     }
     catch (e)
     {
-        console.error(e);
-        return res.status(500).json({ error: "Internal server error" });
+        return handleError(res, e);
     }
 });
 
@@ -185,8 +182,7 @@ app.delete('/api/team/members/:memberId',
     }
     catch (e)
     {
-        console.error(e);
-        return res.status(500).json({ error: "Internal server error" });
+        return handleError(res, e);
     }
 });
 

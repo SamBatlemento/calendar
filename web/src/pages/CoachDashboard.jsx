@@ -67,7 +67,7 @@ export default function CoachDashboard() {
   const handleAssign = async (e) => {
     e.preventDefault();
     try{
-      await assignExercise({...assignment, dueDate: parseLocalDate(assignment.dueDate).toISOString(),});
+      await assignExercise({...assignment, dueDate: assignment.dueDate});
       setMsg('Assigned.');
       if (selectedProgressMember?.member._id === assignment.athleteId) 
       {
@@ -179,7 +179,7 @@ export default function CoachDashboard() {
     try {
       const { data } = await bulkAssignExercise({
         exerciseId: assignment.exerciseId,
-        dueDate: parseLocalDate(assignment.dueDate).toISOString(),
+        dueDate: assignment.dueDate,
       });
       setMsg(data.message);
       refreshProgress();
@@ -191,7 +191,7 @@ export default function CoachDashboard() {
   const handleCreateGame = async (e) => {
     e.preventDefault();
     try {
-      await createGame({ ...games, date: parseLocalDate(games.date).toISOString() });
+      await createGame(games);
       setMsg('Game date added.');
       setGame({ title: '', location: '', date: '' });
       loadGames();
@@ -215,7 +215,7 @@ export default function CoachDashboard() {
       await updateGame(editingGame._id, {
         title: editingGame.title,
         location: editingGame.location,
-        date: parseLocalDate(editingGame.date).toISOString(),
+        date: editingGame.date,
       });
       setMsg('Game updated.');
       setEditingGame(null);
