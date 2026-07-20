@@ -36,6 +36,10 @@ export default function SignupScreen({ navigation }) {
   const update = (key) => (value) => setForm((f) => ({ ...f, [key]: value }));
 
   const handleSignup = async () => {
+    if (form.password.length < 8){
+      setError('Password must be at least 8 characters.');
+      return;
+    }
     setError(null);
     setMsg(null);
     setLoading(true);

@@ -104,6 +104,11 @@ app.post('/api/reset-password', async (req, res) =>
             });
         }
 
+        if (pasword.length < 8)
+        {
+            return res.status(400).json({ error: "Password must be at least 8 characters." });
+        }
+
         // Hash the new password
         const hashedPassword = await bcrypt.hash(password, 10);
 

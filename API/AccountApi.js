@@ -53,7 +53,7 @@ exports.setApp = function(app, mongoose)
             {
                 return res.status(400).json({ error: "Email and password are required." });
             }
-            
+
             const user = await User.findOne({
                 email: email.toLowerCase()
             }).select('+password +refreshTokens');
@@ -135,6 +135,11 @@ exports.setApp = function(app, mongoose)
                 return res.status(400).json({
                     error: "Email already exists."
                 });
+            }
+
+            if (pasword.length < 8)
+            {
+                return res.status(400).json({ error: "Password must be at least 8 characters." });
             }
 
             const hashedPassword = await bcrypt.hash(password, 10);
