@@ -70,12 +70,6 @@ exports.setApp = function(app, mongoose)
                 team = await Team.findOne({ members: req.user.userId });
             }
 
-            let team = await Team.findOne({ coach: req.user.userId });
-            if (!team)
-            {
-                team = await Team.create({ coach: req.user.userId, members: [] });
-            }
-
             let query = { team: team._id };
             const { start, end } = req.query;
             if (start && end)
