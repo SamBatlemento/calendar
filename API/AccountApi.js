@@ -9,6 +9,7 @@ const Athlete = require('../models/Athlete.js');
 
 const sendEmail = require('../utils/sendEmail.js');
 const handleError = require('../utils/handleError.js');
+const emailTemplate = require('../utils/emailTemplate.js');
 
 const { verifyJWT, requireRole } = require("../middleware/auth.js");
 
@@ -127,6 +128,11 @@ exports.setApp = function(app, mongoose)
                 return res.status(400).json({ error: "Role must be 'Coach' or 'Athlete'."});
             }
 
+            if (password.length < 8)
+            {
+                return res.status(400).json({ error: "Password must be at least 8 characters." });
+            }
+
             const existingUser = await User.findOne({
                 email: email.toLowerCase()
             });
@@ -138,10 +144,6 @@ exports.setApp = function(app, mongoose)
                 });
             }
 
-            if (pasword.length < 8)
-            {
-                return res.status(400).json({ error: "Password must be at least 8 characters." });
-            }
 
             const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -160,10 +162,17 @@ exports.setApp = function(app, mongoose)
             let emailSent = true;
             try
             {
+                const verifyUrl = `${process.env.CLIENT_URL}/verify/${user.verificationToken}`;
                 await sendEmail(
                     user.email,
                     'Verify your email',
-                    `Click the link to verify your account: ${process.env.CLIENT_URL}/verify/${user.verificationToken}`
+                    `Welcome to Team Calendar! Verify your account: ${verifyUrl}`,
+                    emailTemplate({
+                        heading: 'Verify your email',
+                        body: `Hi ${firstName}, welcome to Team Calendar! Click the button below to verify your account and get started.`,
+                        buttonText: 'Verify My Account',
+                        buttonUrl: verifyUrl,
+                    })
                 );
             }
             catch (emailErr)
@@ -259,10 +268,17 @@ exports.setApp = function(app, mongoose)
                 await user.save();
             }
 
+            const verifyUrl = `${process.env.CLIENT_URL}/verify/${user.verificationToken}`;
             await sendEmail(
                 user.email,
                 'Verify your email',
-                'Click the link to verify your account: ${process.env.CLIENT_URL}/verify/${user.verificationToken}'
+                `Verify your Team Calendar account: ${verifyUrl}`,
+                emailTemplate({
+                    heading: 'Verify your email',
+                    body: `Hi ${user.firstName}, here's a fresh verification link for your account.`,
+                    buttonText: 'Verify My Account',
+                    buttonUrl: verifyUrl,
+                })
             );
 
             return res.status(200).json(generic);

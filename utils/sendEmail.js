@@ -7,6 +7,7 @@ async function sendEmail(to, subject, text) {
     from: process.env.SENDGRID_FROM_EMAIL,
     subject,
     text,
+    ...(html && { html }),
   };
   try {
     await sgMail.send(msg);
