@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { Form, Button, Container, Alert } from 'react-bootstrap';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
+import { resendVerification } from '../api/auth';
 
 export default function SignupPage() {
   const { signup } = useAuth();
   const [form, setForm] = useState({ firstName: '', lastName: '', email: '', password: '', role: 'Athlete' });
   const [status, setStatus] = useState(null);
   const [error, setError] = useState(null);
+  const [resendStatus, setResendStatus] = useState(null);
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -23,14 +25,36 @@ export default function SignupPage() {
     }
   };
 
+  const handleResend = async () => {
+    setResendStatus(null);
+    try {
+      const { data } = await resendVerification(form.email);
+      setResendStatus(data.message);
+    } catch {
+      setResendStatus('Could not resend right now. Please try again in a few minutes.');
+    }
+  };
+
   if (status) {
-    return (
-      <main className="theme-page" aria-labelledby="signup-status-heading">
-        <Container className="mt-5" style={{ maxWidth: 420 }}>
-          <h2 id="signup-status-heading" className="visually-hidden">Signup status</h2>
-          <Alert variant="success">{status}</Alert>
-        </Container>
-      </main>
+  return (
+    <main className="theme-page" aria-labelledby="signup-status-heading">
+      <Container className="mt-5 text-center" style={{ maxWidth: 420 }}>
+        <h2 id="signup-status-heading" className="visually-hidden">Signup status</h2>
+        <Alert variant="success">{status}</Alert>
+
+        <div className="theme-card text-start mt-3">
+          <p className="theme-heading mb-3">Didn't get the email?</p>
+          <Button className="theme-btn-outline w-100" size="sm" onClick={handleResend}>
+            Resend verification email
+          </Button>
+          {resendStatus && <div className="theme-muted mt-2 text-center">{resendStatus}</div>}
+        </div>
+
+        <div className="mt-3">
+          <Link to="/login" className="theme-link">Go to login</Link>
+        </div>
+      </Container>
+    </main>
     );
   }
 
@@ -74,9 +98,6 @@ export default function SignupPage() {
           </Form>
           <div className="text-center mt-3 theme-muted">
             Already have an account? <Link to="/login" className="theme-link">Log in</Link>
-          </div>
-          <div className="text-center mt-2">
-            <Link to="/login" className="theme-link">Need to verify your email? Log in to resend it</Link>
           </div>
         </div>
       </Container>
