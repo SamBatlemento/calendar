@@ -14,6 +14,15 @@ const GameEvent = require('./models/GameEvent')
 
 async function seed()
 {
+
+    if(process.env.ALLOW_DB_WIPE !== 'yes')
+    {
+        console.error('Refusing to run: this script DELETES ALL DATA.');
+        console.error('If you are sure, run:  ALLOW_DB_WIPE=yes node seedDB.js');
+        console.error('Target DB:', process.env.MONGODB_URI?.replace(/\/\/.*@/, '//<redacted>@'));
+        process.exit(1);
+    }
+
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('Connected for seeding...');
 
