@@ -75,6 +75,9 @@ export default function SignupPage() {
           <div className="text-center mt-3 theme-muted">
             Already have an account? <Link to="/login" className="theme-link">Log in</Link>
           </div>
+          <div className="text-center mt-2">
+            <Link to="/login" className="theme-link">Need to verify your email? Log in to resend it</Link>
+          </div>
         </div>
       </Container>
     </main>
