@@ -5,6 +5,7 @@ const User = require('../models/User.js');
 const {verifyJWT, requireRole} = require("../middleware/auth.js");
 const sendEmail = require('../utils/sendEmail.js');
 const handleError = require('../utils/handleError.js');
+const emailTemplate = require('../utils/emailTemplate.js');
 
 const crypto = require("crypto");
 
@@ -44,10 +45,17 @@ app.post('/api/forgot-password', async (req, res) =>
         user.passwordResetExpires = Date.now() + (1000 * 60 * 30);
         await user.save();
 
+        const resetUrl = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
         await sendEmail(
             email,
             'Reset your password',
-            `Click the link to reset your password: ${process.env.CLIENT_URL}/reset-password/${resetToken}`
+            `Reset your Team Calendar password: ${resetUrl}`,
+            emailTemplate({
+                heading: 'Reset your password',
+                body: `Hi ${user.firstName}, we received a request to reset your password. This link expires in 30 minutes.`,
+                buttonText: 'Reset Password',
+                buttonUrl: resetUrl,
+            })
         );
 
         return res.status(200).json({

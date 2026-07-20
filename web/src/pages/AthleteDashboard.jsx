@@ -231,7 +231,9 @@ export default function AthleteDashboard() {
                     <p className="theme-muted mb-0">{parseLocalDate(selectedEvent.resource.date).toLocaleDateString()}</p>
                   </div>
                 ) : selectedEvent.resource.loggedMinutes ? (
-                  <p className="mb-0">Logged: {selectedEvent.resource.loggedMinutes} minutes</p>
+                  <p className="mb-0" style={{ color: 'var(--navy-text)' }}>
+                    Logged: {selectedEvent.resource.loggedMinutes} minutes
+                  </p>
                 ) : (
                   <Form onSubmit={handleLogTime} className="d-flex gap-2 align-items-end">
                     <Form.Group controlId="log-time-minutes">
