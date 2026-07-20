@@ -24,4 +24,6 @@ const ExerciseLogSchema = new Schema(
     }
 });
 
+ExerciseLogSchema.index({ assignment: 1 });
+
 module.exports = mongoose.model('ExerciseLog', ExerciseLogSchema);

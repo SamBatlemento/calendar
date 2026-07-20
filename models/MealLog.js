@@ -45,4 +45,6 @@ const MealLogSchema = new Schema(
     }
 });
 
+MealLogSchema.index({ member: 1, date: 1 });
+
 module.exports = mongoose.model('MealLog', MealLogSchema);

@@ -33,4 +33,7 @@ const AssignmentSchema = new Schema(
     timestamps: true
 });
 
+AssignmentSchema.index({ member: 1, dueDate: 1 });
+AssignmentSchema.index({ exercise: 1 });
+
 module.exports = mongoose.model('Assignment', AssignmentSchema);
