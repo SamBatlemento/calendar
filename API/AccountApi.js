@@ -115,14 +115,26 @@ exports.setApp = function(app, mongoose)
                 verificationToken
             });
 
-            await sendEmail(
-                email,
-                'Verify your email',
-                `Click the link to verify your account: ${process.env.CLIENT_URL}/verify/${verificationToken}`
-            );
+            let emailSent = true;
+            try
+            {
+                await sendEmail(
+                    email,
+                    'Verify your email',
+                    `Click the link to verify your account: ${process.env.CLIENT_URL}/verify/${verificationToken}`
+                );
+            }
+            catch (emailErr)
+            {
+                console.error('Verification email failed:', emailErr);
+                emailSent = false;
+            }
 
             return res.status(201).json({
-                message: "Account created successfully.",
+                message: emailSent
+                    ? "Account created. Check your email to verify your account before logging in."
+                    : "Account created, but we couldn't send the verification email. Use \"Resend verification email\" on the login page.",
+                emailSent,
                 userId: user._id
             });
         }
@@ -166,6 +178,54 @@ exports.setApp = function(app, mongoose)
             return res.status(200).json({
                 message: "Email verified successfully."
             });
+        }
+        catch (e)
+        {
+            console.error(e);
+            return res.status(500).json({ error: "Internal server error" });
+        }
+    });
+
+    // =========================
+    // Resend Verification Email
+    // =========================
+    app.post('/api/resend-verification', async (req, res) =>
+    {
+        const { email } = req.body;
+
+        try
+        {
+            if(!email)
+            {
+                return res.status(400).json({ error: "Email is required." });
+            }
+
+            const generic = {
+                message: "If an unverified account with that email exists, a new verification email has been sent."
+            };
+
+            const user = await User.findOne({
+                email: email.toLowerCase()
+            }).select('+verificationToken');
+
+            if (!user || user.verified)
+            {
+                return res.status(200).json(generic);
+            }
+
+            if (!user.verificationToken)
+            {
+                user.verificationToken = crypto.randomBytes(32).toString("hex");
+                await user.save();
+            }
+
+            await sendEmail(
+                user.email,
+                'Verify your email',
+                'Click the link to verify your account: ${process.env.CLIENT_URL}/verify/${user.verificationToken}'
+            );
+
+            return res.status(200).json(generic);
         }
         catch (e)
         {

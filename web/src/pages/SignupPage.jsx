@@ -16,8 +16,8 @@ export default function SignupPage() {
     e.preventDefault();
     setError(null);
     try {
-      await signup(form);
-      setStatus('Check your email to verify your account before logging in.');
+      const data = await signup(form);
+      setStatus(data.message || 'Check your email to verify your account before logging in.');
     } catch (err) {
       setError(err.response?.data?.error || 'Signup failed. Try again.');
     }

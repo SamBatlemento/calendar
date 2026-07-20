@@ -2,12 +2,15 @@ import { useState } from 'react';
 import { Form, Button, Container, Alert } from 'react-bootstrap';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { resendVerification } from '../api/auth';
 
 export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState(null);
+  const [showResend, setShowResend] = useState(false);
+  const [resendStatus, setResendStatus] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -17,8 +20,20 @@ export default function LoginPage() {
       navigate(user.role === 'Coach' ? '/coach' : '/athlete');
     } catch (err) {
       setError(err.response?.data?.error || 'Invalid email or password.');
+      setShowResend(err.response?.status === 403);
+      setResendStatus(null);
     }
   };
+
+  const handleResend = async () => {
+    setResendStatus(null);
+    try{
+      const { data } = await resendVerification(form.email);
+      setResendStatus(data.message);
+    } catch {
+      setResendStatus('Could not resend right now. Please try again in a few minutes.');
+    }
+  }
 
   return (
     <main className="theme-page" aria-labelledby="login-heading">
@@ -26,6 +41,14 @@ export default function LoginPage() {
         <div className="theme-card">
           <h2 id="login-heading" className="theme-heading mb-4">Log in</h2>
           {error && <Alert variant="danger">{error}</Alert>}
+          {showResend && (
+            <div className="text-center mb-3">
+              <Button size="sm" className="theme-btn-outline" onClick={handleResend}>
+                Resend verification email
+              </Button>
+              {resendStatus && <div className="theme-muted mt-2">{resendStatus}</div>}
+            </div>
+          )}
           <Form onSubmit={handleSubmit}>
             <Form.Group className="mb-3" controlId="login-email">
               <Form.Label>Email</Form.Label>
