@@ -20,6 +20,7 @@ app.use('/api/signup', authLimiter);
 app.use('/api/forgot-password', authLimiter);
 app.use('/api/resend-verifcation', authLimiter);
 app.use('/api/refresh', authLimiter);
+app.use('/api/reset-password', authLimiter);
 
 const mongoose = require('mongoose');
 
