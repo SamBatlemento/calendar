@@ -45,7 +45,6 @@ async function seed()
         lastName: 'Doe',
         weightUnit: 'lb',
         goals: 'Build strength for the fall season.',
-        coach: coach._id,
         verified: true,
     });
 
@@ -56,7 +55,6 @@ async function seed()
         lastName: 'Jones',
         weightUnit: 'kg',
         goals: 'Improve endurance.',
-        coach: coach._id,
         verified: true,
     });
 

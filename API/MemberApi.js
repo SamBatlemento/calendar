@@ -34,6 +34,16 @@ app.post('/api/team/add-member', verifyJWT, requireRole("Coach"), async (req, re
             });
         }
 
+        const existingTeam = await Team.findOne({ members: athlete._id });
+        if (existingTeam)
+        {
+            return res.status(400).json({
+                error: existingTeam.coach.equals(coachId)
+                    ? "Athlete is already on your team."
+                    : "Athlete is already on another team."
+            });
+        }
+
         let team = await Team.findOneAndUpdate(
             { coach: coachId },
             { $setOnInsert: { coach: coachId, members: [] } },
