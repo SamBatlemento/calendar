@@ -9,6 +9,7 @@ import {
 } from '../api/assignments';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import parseLocalDate from '../utils/parseLocalDate';
 
 const localizer = dayjsLocalizer(dayjs);
 
@@ -168,12 +169,6 @@ export default function AthleteDashboard() {
       setMsg(err.response?.data?.error || 'Failed to delete meal.');
     }
   };
-
-  function parseLocalDate(dateInput) {
-    if (!dateInput) return null;
-    const datePart = typeof dateInput === 'string' ? dateInput.split('T')[0] : dayjs(dateInput).format('YYYY-MM-DD');
-    return new Date(`${datePart}T00:00:00`);
-  }
 
   return (
     <main className="theme-page" aria-labelledby="athlete-heading">

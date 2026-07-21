@@ -6,6 +6,7 @@ import { createExercise, assignExercise, addTeamAthlete, getExercises, getTeamMe
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import dayjs from 'dayjs';
+import parseLocalDate from '../utils/parseLocalDate';
 
 export default function CoachDashboard() {
   const [exercise, setExercise] = useState({ name: '', description: '', targetDurationMinutes: 30 });
@@ -47,12 +48,6 @@ export default function CoachDashboard() {
     loadDropdownData();
     loadGames();
   }, []);
-
-  function parseLocalDate(dateInput) {
-    if (!dateInput) return null;
-    const datePart = typeof dateInput === 'string' ? dateInput.split('T')[0] : dayjs(dateInput).format('YYYY-MM-DD');
-    return new Date(`${datePart}T00:00:00`);
-  }
 
   const handleCreateExercise = async (e) => {
     e.preventDefault();

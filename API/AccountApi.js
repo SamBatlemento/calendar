@@ -16,6 +16,8 @@ const { verifyJWT, requireRole } = require("../middleware/auth.js");
 const REFRESH_TOKEN_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 const MAX_SESSIONS = 5;
 
+const validateSignup = require('./validateSignup');
+
 function hashToken(t)
 {
     return crypto.createHash('sha256').update(t).digest('hex');
@@ -116,25 +118,14 @@ exports.setApp = function(app, mongoose)
 
         try
         {
-            if (!firstName || !lastName || !email || !password || !role)
+            const validation = validateSignup({ firstName, lastName, email, password, role });
+            if (!validation.valid)
             {
-                return res.status(400).json({
-                    error: "All fields are required."
-                });
-            }
-
-            if(role !== 'Coach' && role !== 'Athlete')
-            {
-                return res.status(400).json({ error: "Role must be 'Coach' or 'Athlete'."});
-            }
-
-            if (password.length < 8)
-            {
-                return res.status(400).json({ error: "Password must be at least 8 characters." });
+                return res.status(400).json({ error: validation.error });
             }
 
             const existingUser = await User.findOne({
-                email: email.toLowerCase()
+                email: validation.normalizedEmail
             });
 
             if (existingUser)
@@ -142,11 +133,6 @@ exports.setApp = function(app, mongoose)
                 return res.status(400).json({
                     error: "Email already exists."
                 });
-            }
-
-            if (password.length < 8)
-            {
-                return res.status(400).json({ error: "Password must be at least 8 characters." });
             }
 
             const hashedPassword = await bcrypt.hash(password, 10);
