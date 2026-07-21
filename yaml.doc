@@ -198,11 +198,11 @@ paths:
                 email:
                   type: string
                   format: email
-                  example: jane.doe@example.com
+                  example: jessr@email.com
                 password:
                   type: string
                   format: password
-                  example: SecurePass123
+                  example: 12345678
       responses:
         '200':
           description: Login successful
