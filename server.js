@@ -16,7 +16,7 @@ const morgan = require('morgan');
 
 const app = express();
 app.use(helmet());
-app.use(cors({ origin: [process.env.CLIENT_URL, 'http://localhost:5173', 'https://app.swaggerhub.com'] }));
+app.use(cors({ origin: [process.env.CLIENT_URL, 'http://localhost:5173', 'https://editor.swagger.io'] }));
 app.use(morgan('combined'));
 app.use(express.json());
 
